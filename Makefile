@@ -1,5 +1,5 @@
-helm-docs:
-	go build github.com/norwoodj/helm-docs/cmd/helm-docs
+yaml-docs:
+	go build github.com/theEndBeta/yaml-doc/cmd/helm-docs
 
 .PHONY: fmt
 fmt:
@@ -11,7 +11,7 @@ test:
 
 .PHONY: clean
 clean:
-	rm -f helm-docs
+	rm -f yaml-docs
 
 .PHONY: dist
 dist:

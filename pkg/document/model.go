@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/norwoodj/helm-docs/pkg/helm"
+	"github.com/theEndBeta/yaml-docs/pkg/helm"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 )

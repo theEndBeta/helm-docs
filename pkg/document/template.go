@@ -9,7 +9,7 @@ import (
 	"github.com/Masterminds/sprig"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/norwoodj/helm-docs/pkg/helm"
+	"github.com/theEndBeta/yaml-docs/pkg/helm"
 )
 
 const defaultDocumentationTemplate = `
