@@ -3,11 +3,8 @@ package document
 import (
 	"io/ioutil"
 	"os"
-	"path"
 	"strings"
 	"text/template"
-
-	"github.com/norwoodj/helm-docs/pkg/util"
 
 	"github.com/Masterminds/sprig"
 	log "github.com/sirupsen/logrus"
@@ -15,21 +12,7 @@ import (
 	"github.com/norwoodj/helm-docs/pkg/helm"
 )
 
-const defaultDocumentationTemplate = `{{ template "chart.header" . }}
-{{ template "chart.deprecationWarning" . }}
-
-{{ template "chart.badgesSection" . }}
-
-{{ template "chart.description" . }}
-
-{{ template "chart.homepageLine" . }}
-
-{{ template "chart.maintainersSection" . }}
-
-{{ template "chart.sourcesSection" . }}
-
-{{ template "chart.requirementsSection" . }}
-
+const defaultDocumentationTemplate = `
 {{ template "chart.valuesSection" . }}
 
 {{ template "helm-docs.versionFooter" . }}
@@ -238,7 +221,7 @@ func getHelmDocsVersionTemplates() string {
 	return versionSectionBuilder.String()
 }
 
-func getDocumentationTemplate(chartDirectory string, chartSearchRoot string, templateFiles []string) (string, error) {
+func getDocumentationTemplate(templateFiles []string) (string, error) {
 	templateFilesForChart := make([]string, 0)
 
 	var templateNotFound bool
@@ -246,16 +229,10 @@ func getDocumentationTemplate(chartDirectory string, chartSearchRoot string, tem
 	for _, templateFile := range templateFiles {
 		var fullTemplatePath string
 
-		if util.IsRelativePath(templateFile) {
-			fullTemplatePath = path.Join(chartSearchRoot, templateFile)
-		} else if util.IsBaseFilename(templateFile) {
-			fullTemplatePath = path.Join(chartDirectory, templateFile)
-		} else {
-			fullTemplatePath = templateFile
-		}
+		fullTemplatePath = templateFile
 
 		if _, err := os.Stat(fullTemplatePath); os.IsNotExist(err) {
-			log.Debugf("Did not find template file %s for chart %s, using default template", templateFile, chartDirectory)
+			log.Debugf("Did not find template file %s, using default template", templateFile)
 
 			templateNotFound = true
 			continue
@@ -264,7 +241,7 @@ func getDocumentationTemplate(chartDirectory string, chartSearchRoot string, tem
 		templateFilesForChart = append(templateFilesForChart, fullTemplatePath)
 	}
 
-	log.Debugf("Using template files %s for chart %s", templateFiles, chartDirectory)
+	log.Debugf("Using template files %s", templateFiles)
 	allTemplateContents := make([]byte, 0)
 	for _, templateFileForChart := range templateFilesForChart {
 		templateContents, err := ioutil.ReadFile(templateFileForChart)
@@ -281,11 +258,11 @@ func getDocumentationTemplate(chartDirectory string, chartSearchRoot string, tem
 	return string(allTemplateContents), nil
 }
 
-func getDocumentationTemplates(chartDirectory string, chartSearchRoot string, templateFiles []string) ([]string, error) {
-	documentationTemplate, err := getDocumentationTemplate(chartDirectory, chartSearchRoot, templateFiles)
+func getDocumentationTemplates(templateFiles []string) ([]string, error) {
+	documentationTemplate, err := getDocumentationTemplate(templateFiles)
 
 	if err != nil {
-		log.Errorf("Failed to read documentation template for chart %s: %s", chartDirectory, err)
+		log.Errorf("Failed to read documentation templates %s: %s", templateFiles, err)
 		return nil, err
 	}
 
@@ -308,10 +285,10 @@ func getDocumentationTemplates(chartDirectory string, chartSearchRoot string, te
 	}, nil
 }
 
-func newChartDocumentationTemplate(chartDocumentationInfo helm.ChartDocumentationInfo, chartSearchRoot string, templateFiles []string) (*template.Template, error) {
+func newChartDocumentationTemplate(chartDocumentationInfo helm.ChartDocumentationInfo, templateFiles []string) (*template.Template, error) {
 	documentationTemplate := template.New(chartDocumentationInfo.ChartDirectory)
 	documentationTemplate.Funcs(sprig.TxtFuncMap())
-	goTemplateList, err := getDocumentationTemplates(chartDocumentationInfo.ChartDirectory, chartSearchRoot, templateFiles)
+	goTemplateList, err := getDocumentationTemplates(templateFiles)
 
 	if err != nil {
 		return nil, err

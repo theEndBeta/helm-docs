@@ -14,44 +14,45 @@ import (
 	"github.com/norwoodj/helm-docs/pkg/helm"
 )
 
-func retrieveInfoAndPrintDocumentation(chartDirectory string, chartSearchRoot string, templateFiles []string, waitGroup *sync.WaitGroup, dryRun bool) {
+func retrieveInfoAndPrintDocumentation(valuesFilePath string, templateFiles []string, waitGroup *sync.WaitGroup, dryRun bool) {
 	defer waitGroup.Done()
-	chartDocumentationInfo, err := helm.ParseChartInformation(path.Join(chartSearchRoot, chartDirectory))
+	valuesFileInfo, err := helm.ParseChartInformation(valuesFilePath)
 
 	if err != nil {
-		log.Warnf("Error parsing information for chart %s, skipping: %s", chartDirectory, err)
+		log.Warnf("Error parsing information for chart %s, skipping: %s", valuesFilePath, err)
 		return
 	}
 
-	document.PrintDocumentation(chartDocumentationInfo, chartSearchRoot, templateFiles, dryRun, version)
+	document.PrintDocumentation(valuesFileInfo, templateFiles, dryRun, version)
 
 }
 
 func helmDocs(cmd *cobra.Command, _ []string) {
 	initializeCli()
 
-	chartSearchRoot := viper.GetString("chart-search-root")
-	var fullChartSearchRoot string
+	var valuesFiles []string
+	valuesFiles = viper.GetStringSlice("values-file")
 
-	if path.IsAbs(chartSearchRoot) {
-		fullChartSearchRoot = chartSearchRoot
-	} else {
-		cwd, err := os.Getwd()
-		if err != nil {
-			log.Warnf("Error getting working directory: %s", err)
-			return
-		}
-
-		fullChartSearchRoot = path.Join(cwd, chartSearchRoot)
+	if len(valuesFiles) == 0 {
+		log.Warn("As least one `values-file` must be provided.")
+		return
 	}
 
-	chartDirs, err := helm.FindChartDirectories(fullChartSearchRoot)
+	cwd, err := os.Getwd()
 	if err != nil {
-		log.Errorf("Error finding chart directories: %s", err)
-		os.Exit(1)
+		log.Warnf("Error getting working directory: %s", err)
+		return
 	}
 
-	log.Infof("Found Chart directories [%s]", strings.Join(chartDirs, ", "))
+	// fullChartSearchRoot = path.Join(cwd, chartSearchRoot)
+
+	// chartDirs, err := helm.FindChartDirectories(fullChartSearchRoot)
+	// if err != nil {
+	// 	log.Errorf("Error finding chart directories: %s", err)
+	// 	os.Exit(1)
+	// }
+
+	// log.Infof("Found Chart directories [%s]", strings.Join(chartDirs, ", "))
 
 	templateFiles := viper.GetStringSlice("template-files")
 	log.Debugf("Rendering from optional template files [%s]", strings.Join(templateFiles, ", "))
@@ -59,14 +60,16 @@ func helmDocs(cmd *cobra.Command, _ []string) {
 	dryRun := viper.GetBool("dry-run")
 	waitGroup := sync.WaitGroup{}
 
-	for _, c := range chartDirs {
+	var fullPath string
+	for _, fname := range valuesFiles {
 		waitGroup.Add(1)
+		fullPath = path.Join(cwd, fname)
 
 		// On dry runs all output goes to stdout, and so as to not jumble things, generate serially
 		if dryRun {
-			retrieveInfoAndPrintDocumentation(c, fullChartSearchRoot, templateFiles, &waitGroup, dryRun)
+			retrieveInfoAndPrintDocumentation(fullPath, templateFiles, &waitGroup, dryRun)
 		} else {
-			go retrieveInfoAndPrintDocumentation(c, fullChartSearchRoot, templateFiles, &waitGroup, dryRun)
+			go retrieveInfoAndPrintDocumentation(fullPath, templateFiles, &waitGroup, dryRun)
 		}
 	}
 
