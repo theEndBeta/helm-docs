@@ -75,7 +75,7 @@ func getTypeName(value interface{}) string {
 	return ""
 }
 
-func parseNilValueType(key string, description helm.ChartValueDescription, autoDescription helm.ChartValueDescription, column int, lineNumber int) valueRow {
+func parseNilValueType(key string, description helm.ValueDescription, autoDescription helm.ValueDescription, column int, lineNumber int) valueRow {
 	if len(description.Description) == 0 {
 		description.Description = autoDescription.Description
 	}
@@ -119,19 +119,19 @@ func jsonMarshalNoEscape(key string, value interface{}) (string, error) {
 	return strings.TrimRight(outputBuffer.String(), "\n"), nil
 }
 
-func getDescriptionFromNode(node *yaml.Node) helm.ChartValueDescription {
+func getDescriptionFromNode(node *yaml.Node) helm.ValueDescription {
 	if node == nil {
-		return helm.ChartValueDescription{}
+		return helm.ValueDescription{}
 	}
 
 	if node.HeadComment == "" {
-		return helm.ChartValueDescription{}
+		return helm.ValueDescription{}
 	}
 
 	commentLines := strings.Split(node.HeadComment, "\n")
 	keyFromComment, c := helm.ParseComment(commentLines)
 	if keyFromComment != "" {
-		return helm.ChartValueDescription{}
+		return helm.ValueDescription{}
 	}
 
 	return c
@@ -140,8 +140,8 @@ func getDescriptionFromNode(node *yaml.Node) helm.ChartValueDescription {
 func createValueRow(
 	key string,
 	value interface{},
-	description helm.ChartValueDescription,
-	autoDescription helm.ChartValueDescription,
+	description helm.ValueDescription,
+	autoDescription helm.ValueDescription,
 	column int,
 	lineNumber int,
 ) (valueRow, error) {
@@ -176,7 +176,7 @@ func createValueRowsFromList(
 	prefix string,
 	key *yaml.Node,
 	values *yaml.Node,
-	keysToDescriptions map[string]helm.ChartValueDescription,
+	keysToDescriptions map[string]helm.ValueDescription,
 	documentLeafNodes bool,
 ) ([]valueRow, error) {
 	description, hasDescription := keysToDescriptions[prefix]
@@ -232,7 +232,7 @@ func createValueRowsFromObject(
 	nextPrefix string,
 	key *yaml.Node,
 	values *yaml.Node,
-	keysToDescriptions map[string]helm.ChartValueDescription,
+	keysToDescriptions map[string]helm.ValueDescription,
 	documentLeafNodes bool,
 ) ([]valueRow, error) {
 	description, hasDescription := keysToDescriptions[nextPrefix]
@@ -290,7 +290,7 @@ func createValueRowsFromField(
 	prefix string,
 	key *yaml.Node,
 	value *yaml.Node,
-	keysToDescriptions map[string]helm.ChartValueDescription,
+	keysToDescriptions map[string]helm.ValueDescription,
 	documentLeafNodes bool,
 ) ([]valueRow, error) {
 	switch value.Kind {

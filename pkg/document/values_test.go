@@ -22,7 +22,7 @@ func parseYamlValues(yamlValues string) *yaml.Node {
 
 func TestEmptyValues(t *testing.T) {
 	helmValues := parseYamlValues(`{}`)
-	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ChartValueDescription))
+	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ValueDescription))
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 0)
 }
@@ -35,7 +35,7 @@ hello: "world"
 oscar: 3.14159
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ChartValueDescription))
+	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ValueDescription))
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 4)
@@ -77,7 +77,7 @@ hello: "world"
 oscar: 3.14159
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"echo":    {Description: "echo"},
 		"foxtrot": {Description: "foxtrot"},
 		"hello":   {Description: "hello"},
@@ -126,7 +126,7 @@ hello: "world"
 oscar: 3.14159
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"echo":    {Description: "echo", Default: "some"},
 		"foxtrot": {Description: "foxtrot", Default: "explicit"},
 		"hello":   {Description: "hello", Default: "default"},
@@ -174,7 +174,7 @@ recursive:
 oscar: dog
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ChartValueDescription))
+	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ValueDescription))
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -201,7 +201,7 @@ recursive:
 oscar: dog
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"recursive.echo": {Description: "echo"},
 		"oscar":          {Description: "oscar"},
 	}
@@ -233,7 +233,7 @@ recursive:
 oscar: dog
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"recursive.echo": {Description: "echo", Default: "custom"},
 		"oscar":          {Description: "oscar", Default: "default"},
 	}
@@ -264,7 +264,7 @@ recursive: {}
 oscar: dog
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ChartValueDescription))
+	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ValueDescription))
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -290,7 +290,7 @@ recursive: {}
 oscar: dog
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"recursive": {Description: "an empty object"},
 	}
 
@@ -320,7 +320,7 @@ recursive: {}
 oscar: dog
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"recursive": {Description: "an empty object", Default: "default"},
 	}
 
@@ -349,7 +349,7 @@ birds: []
 echo: cat
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ChartValueDescription))
+	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ValueDescription))
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -375,7 +375,7 @@ birds: []
 echo: cat
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"birds": {Description: "birds"},
 		"echo":  {Description: "echo"},
 	}
@@ -406,7 +406,7 @@ birds: []
 echo: cat
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"birds": {Description: "birds", Default: "explicit"},
 		"echo":  {Description: "echo", Default: "default value"},
 	}
@@ -436,7 +436,7 @@ func TestListOfStrings(t *testing.T) {
 cats: [echo, foxtrot]
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ChartValueDescription))
+	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ValueDescription))
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -462,7 +462,7 @@ func TestListOfStringsWithDescriptions(t *testing.T) {
 cats: [echo, foxtrot]
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"cats[0]": {Description: "the black one"},
 		"cats[1]": {Description: "the friendly one"},
 	}
@@ -493,7 +493,7 @@ func TestListOfStringsWithDescriptionsAndDefaults(t *testing.T) {
 cats: [echo, foxtrot]
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"cats[0]": {Description: "the black one", Default: "explicit"},
 		"cats[1]": {Description: "the friendly one", Default: "default value"},
 	}
@@ -528,7 +528,7 @@ animals:
     type: dog
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ChartValueDescription))
+	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ValueDescription))
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 5)
@@ -578,7 +578,7 @@ animals:
     type: dog
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"animals[0].elements[0]": {Description: "the black one"},
 		"animals[0].elements[1]": {Description: "the friendly one"},
 		"animals[1].elements[0]": {Description: "the sleepy one"},
@@ -634,7 +634,7 @@ animals:
     type: dog
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"animals[0].elements[0]": {Description: "the black one", Default: "explicit"},
 		"animals[0].elements[1]": {Description: "the friendly one", Default: "default"},
 		"animals[1].elements[0]": {Description: "the sleepy one", Default: "value"},
@@ -690,7 +690,7 @@ animals:
     type: dog
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"animals": {Description: "all the animals of the house"},
 	}
 
@@ -716,7 +716,7 @@ animals:
     type: dog
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"animals": {Description: "all the animals of the house", Default: "cat and dog"},
 	}
 
@@ -742,7 +742,7 @@ animals:
     type: dog
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"animals[0]": {Description: "all the cats of the house", Default: "only cats here"},
 	}
 
@@ -782,7 +782,7 @@ animals:
     sleepy: [oscar]
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"animals.byTrait": {Description: "animals listed by their various characteristics"},
 	}
 
@@ -808,7 +808,7 @@ animals:
     sleepy: [oscar]
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"animals.byTrait": {Description: "animals listed by their various characteristics", Default: "animals, you know"},
 	}
 
@@ -834,7 +834,7 @@ animals:
     sleepy: [oscar]
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"animals":                     {Description: "animal stuff"},
 		"animals.byTrait":             {Description: "animals listed by their various characteristics"},
 		"animals.byTrait.friendly":    {Description: "the friendly animals of the house"},
@@ -884,7 +884,7 @@ animals:
     sleepy: [oscar]
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"animals":                     {Description: "animal stuff", Default: "some"},
 		"animals.byTrait":             {Description: "animals listed by their various characteristics", Default: "explicit"},
 		"animals.byTrait.friendly":    {Description: "the friendly animals of the house", Default: "default"},
@@ -933,7 +933,7 @@ animals:
   nonWeirdCats:
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"animals.birdCount":    {Description: "(int) the number of birds we have"},
 		"animals.birds":        {Description: "(list) the list of birds we have"},
 		"animals.nonWeirdCats": {Description: "the cats that we have that are not weird"},
@@ -974,7 +974,7 @@ animals:
   nonWeirdCats:
 	`)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		"animals.birdCount":    {Description: "(int) the number of birds we have", Default: "some"},
 		"animals.birds":        {Description: "(list) the list of birds we have", Default: "explicit"},
 		"animals.nonWeirdCats": {Description: "the cats that we have that are not weird", Default: "default"},
@@ -1015,7 +1015,7 @@ fullNames:
   John Norwood: me
 `)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ChartValueDescription))
+	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ValueDescription))
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -1043,7 +1043,7 @@ fullNames:
   John Norwood: me
 `)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		`fullNames."John Norwood"`:         {Description: "who am I"},
 		`websites."stupidchess.jmn23.com"`: {Description: "status of the stupidchess website"},
 	}
@@ -1076,7 +1076,7 @@ fullNames:
   John Norwood: me
 `)
 
-	descriptions := map[string]helm.ChartValueDescription{
+	descriptions := map[string]helm.ValueDescription{
 		`fullNames."John Norwood"`:         {Description: "who am I", Default: "default"},
 		`websites."stupidchess.jmn23.com"`: {Description: "status of the stupidchess website", Default: "value"},
 	}
@@ -1116,7 +1116,7 @@ hello: "world"
 oscar: 3.14159
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ChartValueDescription))
+	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ValueDescription))
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 4)
@@ -1165,7 +1165,7 @@ animals:
     oscar: 3.14159
 `)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ChartValueDescription))
+	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ValueDescription))
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 3)
@@ -1202,7 +1202,7 @@ animals:
     - foxtrot
 `)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ChartValueDescription))
+	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ValueDescription))
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -1236,7 +1236,7 @@ animalLocations:
     cats: []
 `)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ChartValueDescription))
+	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ValueDescription))
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -1267,7 +1267,7 @@ animals:
       - foxtrot
 `)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ChartValueDescription))
+	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ValueDescription))
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 1)
@@ -1288,7 +1288,7 @@ animals:
   dogs:
 `)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ChartValueDescription))
+	valuesRows, err := getSortedValuesTableRows(helmValues, make(map[string]helm.ValueDescription))
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 1)

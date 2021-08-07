@@ -15,15 +15,14 @@ var valuesDescriptionRegex = regexp.MustCompile("^\\s*#\\s*(.*)\\s+--\\s*(.*)$")
 var commentContinuationRegex = regexp.MustCompile("^\\s*# (.*)$")
 var defaultValueRegex = regexp.MustCompile("^\\s*# @default -- (.*)$")
 
-type ChartValueDescription struct {
+type ValueDescription struct {
 	Description string
 	Default     string
 }
 
-type ChartDocumentationInfo struct {
-	ChartDirectory          string
-	ChartValues             *yaml.Node
-	ChartValuesDescriptions map[string]ChartValueDescription
+type DocumentationInfo struct {
+	Values             *yaml.Node
+	ValuesDescriptions map[string]ValueDescription
 }
 
 func getYamlFileContents(filename string) ([]byte, error) {
@@ -53,7 +52,7 @@ func isErrorInReadingNecessaryFile(filePath string, loadError error) bool {
 	return false
 }
 
-func parseChartValuesFile(valuesPath string) (yaml.Node, error) {
+func parseValuesFile(valuesPath string) (yaml.Node, error) {
 	yamlFileContents, err := getYamlFileContents(valuesPath)
 
 	var values yaml.Node
@@ -65,16 +64,16 @@ func parseChartValuesFile(valuesPath string) (yaml.Node, error) {
 	return values, err
 }
 
-func parseChartValuesFileComments(valuesPath string) (map[string]ChartValueDescription, error) {
+func parseValuesFileComments(valuesPath string) (map[string]ValueDescription, error) {
 	valuesFile, err := os.Open(valuesPath)
 
 	if isErrorInReadingNecessaryFile(valuesPath, err) {
-		return map[string]ChartValueDescription{}, err
+		return map[string]ValueDescription{}, err
 	}
 
 	defer valuesFile.Close()
 
-	keyToDescriptions := make(map[string]ChartValueDescription)
+	keyToDescriptions := make(map[string]ValueDescription)
 	scanner := bufio.NewScanner(valuesFile)
 	foundValuesComment := false
 	commentLines := make([]string, 0)
@@ -118,20 +117,20 @@ func parseChartValuesFileComments(valuesPath string) (map[string]ChartValueDescr
 	return keyToDescriptions, nil
 }
 
-func ParseChartInformation(valuesFileName string) (ChartDocumentationInfo, error) {
-	var chartDocInfo ChartDocumentationInfo
+func ParseChartInformation(valuesFileName string) (DocumentationInfo, error) {
+	var docInfo DocumentationInfo
 	var err error
 
-	chartValues, err := parseChartValuesFile(valuesFileName)
+	values, err := parseValuesFile(valuesFileName)
 	if err != nil {
-		return chartDocInfo, err
+		return docInfo, err
 	}
 
-	chartDocInfo.ChartValues = &chartValues
-	chartDocInfo.ChartValuesDescriptions, err = parseChartValuesFileComments(valuesFileName)
+	docInfo.Values = &values
+	docInfo.ValuesDescriptions, err = parseValuesFileComments(valuesFileName)
 	if err != nil {
-		return chartDocInfo, err
+		return docInfo, err
 	}
 
-	return chartDocInfo, nil
+	return docInfo, nil
 }

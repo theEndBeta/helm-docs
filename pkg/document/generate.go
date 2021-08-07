@@ -3,8 +3,6 @@ package document
 import (
 	"bytes"
 	"os"
-	"path"
-	"path/filepath"
 	"regexp"
 
 	"github.com/theEndBeta/yaml-docs/pkg/helm"
@@ -12,13 +10,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-func getOutputFile(chartDirectory string, dryRun bool) (*os.File, error) {
+func getOutputFile(dryRun bool) (*os.File, error) {
 	if dryRun {
 		return os.Stdout, nil
 	}
 
 	outputFile := viper.GetString("output-file")
-	f, err := os.Create(path.Join(chartDirectory, outputFile))
+	f, err := os.Create(outputFile)
 
 	if err != nil {
 		return nil, err
@@ -27,28 +25,25 @@ func getOutputFile(chartDirectory string, dryRun bool) (*os.File, error) {
 	return f, err
 }
 
-func PrintDocumentation(chartDocumentationInfo helm.ChartDocumentationInfo, templateFiles []string, dryRun bool, helmDocsVersion string) {
-	log.Infof("Generating README Documentation for chart %s", chartDocumentationInfo.ChartDirectory)
+func PrintDocumentation(documentationInfo helm.DocumentationInfo, templateFiles []string, dryRun bool, helmDocsVersion string) {
+	log.Infof("Generating README Documentation")
 
-	chartDocumentationTemplate, err := newChartDocumentationTemplate(
-		chartDocumentationInfo,
-		templateFiles,
-	)
+	documentationTemplate, err := newDocumentationTemplate(templateFiles)
 
 	if err != nil {
-		log.Warnf("Error generating gotemplates for chart %s: %s", chartDocumentationInfo.ChartDirectory, err)
+		log.Warnf("Error generating gotemplates: %s", err)
 		return
 	}
 
-	chartTemplateDataObject, err := getChartTemplateData(chartDocumentationInfo, helmDocsVersion)
+	chartTemplateDataObject, err := getChartTemplateData(documentationInfo, helmDocsVersion)
 	if err != nil {
-		log.Warnf("Error generating template data for chart %s: %s", chartDocumentationInfo.ChartDirectory, err)
+		log.Warnf("Error generating template data: %s", err)
 		return
 	}
 
-	outputFile, err := getOutputFile(chartDocumentationInfo.ChartDirectory, dryRun)
+	outputFile, err := getOutputFile(dryRun)
 	if err != nil {
-		log.Warnf("Could not open chart README file %s, skipping chart", filepath.Join(chartDocumentationInfo.ChartDirectory, "README.md"))
+		log.Warnf("Could not open chart README file %s", err)
 		return
 	}
 
@@ -57,15 +52,15 @@ func PrintDocumentation(chartDocumentationInfo helm.ChartDocumentationInfo, temp
 	}
 
 	var output bytes.Buffer
-	err = chartDocumentationTemplate.Execute(&output, chartTemplateDataObject)
+	err = documentationTemplate.Execute(&output, chartTemplateDataObject)
 	if err != nil {
-		log.Warnf("Error generating documentation for chart %s: %s", chartDocumentationInfo.ChartDirectory, err)
+		log.Warnf("Error generating documentation: %s", err)
 	}
 
 	output = applyMarkDownFormat(output)
 	_, err = output.WriteTo(outputFile)
 	if err != nil {
-		log.Warnf("Error generating documentation file for chart %s: %s", chartDocumentationInfo.ChartDirectory, err)
+		log.Warnf("Error generating documentation [markdown]: %s", err)
 	}
 }
 

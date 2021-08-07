@@ -35,20 +35,18 @@ func initializeCli() {
 	log.SetLevel(logLevel)
 }
 
-func newHelmDocsCommand(run func(cmd *cobra.Command, args []string)) (*cobra.Command, error) {
+func newYAMLDocsCommand(run func(cmd *cobra.Command, args []string)) (*cobra.Command, error) {
 	command := &cobra.Command{
 		Use:     "yaml-docs",
-		Short:   "yaml-docs automatically generates markdown documentation yaml values files",
+		Short:   "yaml-docs automatically generates markdown documentation from yaml values files",
 		Version: version,
 		Run:     run,
 	}
 
 	logLevelUsage := fmt.Sprintf("Level of logs that should printed, one of (%s)", strings.Join(possibleLogLevels(), ", "))
-	// command.PersistentFlags().StringP("chart-search-root", "c", ".", "directory to search recursively within for charts")
 	command.PersistentFlags().BoolP("dry-run", "d", false, "don't actually render any markdown files just print to stdout passed")
-	command.PersistentFlags().StringP("ignore-file", "i", ".helmdocsignore", "The filename to use as an ignore file to exclude chart directories")
 	command.PersistentFlags().StringP("log-level", "l", "info", logLevelUsage)
-	command.PersistentFlags().StringP("output-file", "o", "README.md", "markdown file path relative to each chart directory to which rendered documentation will be written")
+	command.PersistentFlags().StringP("output-file", "o", "README.md", "markdown file path relative to input template to which rendered documentation will be written")
 	command.PersistentFlags().StringP("sort-values-order", "s", document.AlphaNumSortOrder, fmt.Sprintf("order in which to sort the values table (\"%s\" or \"%s\")", document.AlphaNumSortOrder, document.FileSortOrder))
 	command.PersistentFlags().StringSliceP("template-files", "t", []string{"README.md.gotmpl"}, "gotemplate file paths relative to each chart directory from which documentation will be generated")
 	command.PersistentFlags().StringSliceP("values-file", "f", []string{}, "yaml values file to be parsed into values table. Can be specified multiple times")

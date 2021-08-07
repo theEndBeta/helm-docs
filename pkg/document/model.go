@@ -23,12 +23,12 @@ type valueRow struct {
 }
 
 type chartTemplateData struct {
-	helm.ChartDocumentationInfo
+	helm.DocumentationInfo
 	HelmDocsVersion string
 	Values          []valueRow
 }
 
-func getSortedValuesTableRows(documentRoot *yaml.Node, chartValuesDescriptions map[string]helm.ChartValueDescription) ([]valueRow, error) {
+func getSortedValuesTableRows(documentRoot *yaml.Node, chartValuesDescriptions map[string]helm.ValueDescription) ([]valueRow, error) {
 	valuesTableRows, err := createValueRowsFromField(
 		"",
 		nil,
@@ -65,31 +65,31 @@ func getSortedValuesTableRows(documentRoot *yaml.Node, chartValuesDescriptions m
 }
 
 
-func getChartTemplateData(chartDocumentationInfo helm.ChartDocumentationInfo, helmDocsVersion string) (chartTemplateData, error) {
+func getChartTemplateData(chartDocumentationInfo helm.DocumentationInfo, helmDocsVersion string) (chartTemplateData, error) {
 	// handle empty values file case
-	if chartDocumentationInfo.ChartValues.Kind == 0 {
+	if chartDocumentationInfo.Values.Kind == 0 {
 		return chartTemplateData{
-			ChartDocumentationInfo: chartDocumentationInfo,
+			DocumentationInfo: chartDocumentationInfo,
 			HelmDocsVersion:        helmDocsVersion,
 			Values:                 make([]valueRow, 0),
 		}, nil
 	}
 
-	if chartDocumentationInfo.ChartValues.Kind != yaml.DocumentNode {
-		return chartTemplateData{}, fmt.Errorf("invalid node kind supplied: %d", chartDocumentationInfo.ChartValues.Kind)
+	if chartDocumentationInfo.Values.Kind != yaml.DocumentNode {
+		return chartTemplateData{}, fmt.Errorf("invalid node kind supplied: %d", chartDocumentationInfo.Values.Kind)
 	}
-	if chartDocumentationInfo.ChartValues.Content[0].Kind != yaml.MappingNode {
-		return chartTemplateData{}, fmt.Errorf("values file must resolve to a map, not %s", strconv.Itoa(int(chartDocumentationInfo.ChartValues.Kind)))
+	if chartDocumentationInfo.Values.Content[0].Kind != yaml.MappingNode {
+		return chartTemplateData{}, fmt.Errorf("values file must resolve to a map, not %s", strconv.Itoa(int(chartDocumentationInfo.Values.Kind)))
 	}
 
-	valuesTableRows, err := getSortedValuesTableRows(chartDocumentationInfo.ChartValues.Content[0], chartDocumentationInfo.ChartValuesDescriptions)
+	valuesTableRows, err := getSortedValuesTableRows(chartDocumentationInfo.Values.Content[0], chartDocumentationInfo.ValuesDescriptions)
 
 	if err != nil {
 		return chartTemplateData{}, err
 	}
 
 	return chartTemplateData{
-		ChartDocumentationInfo: chartDocumentationInfo,
+		DocumentationInfo: chartDocumentationInfo,
 		HelmDocsVersion:        helmDocsVersion,
 		Values:                 valuesTableRows,
 	}, nil

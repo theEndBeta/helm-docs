@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"path"
 	"strings"
 	"sync"
 
@@ -38,38 +37,20 @@ func helmDocs(cmd *cobra.Command, _ []string) {
 		return
 	}
 
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Warnf("Error getting working directory: %s", err)
-		return
-	}
-
-	// fullChartSearchRoot = path.Join(cwd, chartSearchRoot)
-
-	// chartDirs, err := helm.FindChartDirectories(fullChartSearchRoot)
-	// if err != nil {
-	// 	log.Errorf("Error finding chart directories: %s", err)
-	// 	os.Exit(1)
-	// }
-
-	// log.Infof("Found Chart directories [%s]", strings.Join(chartDirs, ", "))
-
 	templateFiles := viper.GetStringSlice("template-files")
 	log.Debugf("Rendering from optional template files [%s]", strings.Join(templateFiles, ", "))
 
 	dryRun := viper.GetBool("dry-run")
 	waitGroup := sync.WaitGroup{}
 
-	var fullPath string
 	for _, fname := range valuesFiles {
 		waitGroup.Add(1)
-		fullPath = path.Join(cwd, fname)
 
 		// On dry runs all output goes to stdout, and so as to not jumble things, generate serially
 		if dryRun {
-			retrieveInfoAndPrintDocumentation(fullPath, templateFiles, &waitGroup, dryRun)
+			retrieveInfoAndPrintDocumentation(fname, templateFiles, &waitGroup, dryRun)
 		} else {
-			go retrieveInfoAndPrintDocumentation(fullPath, templateFiles, &waitGroup, dryRun)
+			go retrieveInfoAndPrintDocumentation(fname, templateFiles, &waitGroup, dryRun)
 		}
 	}
 
@@ -77,7 +58,7 @@ func helmDocs(cmd *cobra.Command, _ []string) {
 }
 
 func main() {
-	command, err := newHelmDocsCommand(helmDocs)
+	command, err := newYAMLDocsCommand(helmDocs)
 	if err != nil {
 		log.Errorf("Failed to create the CLI commander: %s", err)
 		os.Exit(1)

@@ -3,13 +3,13 @@ package document
 import (
 	"io/ioutil"
 	"os"
+	"path"
 	"strings"
 	"text/template"
 
 	"github.com/Masterminds/sprig"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/theEndBeta/yaml-docs/pkg/helm"
 )
 
 const defaultDocumentationTemplate = `
@@ -285,8 +285,14 @@ func getDocumentationTemplates(templateFiles []string) ([]string, error) {
 	}, nil
 }
 
-func newChartDocumentationTemplate(chartDocumentationInfo helm.ChartDocumentationInfo, templateFiles []string) (*template.Template, error) {
-	documentationTemplate := template.New(chartDocumentationInfo.ChartDirectory)
+
+func newDocumentationTemplate(templateFiles []string) (*template.Template, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+
+	documentationTemplate := template.New(path.Base(cwd))
 	documentationTemplate.Funcs(sprig.TxtFuncMap())
 	goTemplateList, err := getDocumentationTemplates(templateFiles)
 

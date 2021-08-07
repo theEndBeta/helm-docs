@@ -1,8 +1,8 @@
 package helm
 
-func ParseComment(commentLines []string) (string, ChartValueDescription) {
+func ParseComment(commentLines []string) (string, ValueDescription) {
 	var valueKey string
-	var c ChartValueDescription
+	var c ValueDescription
 	var docStartIdx int
 
 	for i := range commentLines {
