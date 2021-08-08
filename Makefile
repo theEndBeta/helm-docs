@@ -5,9 +5,15 @@ GOPATH="$(GOBASE)/vendor:$(GOBASE)"
 GOBIN="$(GOBASE)/bin"
 
 
-.PHONY build
+.PHONY: build
 build:
-	GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build -o $(GOBIN)/$(PROJECTNAME) ./cmd/yaml-docs
+	mkdir -p $(GOBIN)
+	GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build -o "$(GOBIN)/$(PROJECTNAME)" ./cmd/yaml-docs
+
+.PHONY: vendor
+vendor:
+	mkdir -p "$(GOBASE)/vendor"
+	GOPATH=$(GOPATH) GOBIN=$(GOBIN) go mod vendor
 
 .PHONY: fmt
 fmt:
@@ -19,7 +25,8 @@ test:
 
 .PHONY: clean
 clean:
-	GOPATH=$(GOPATH) GOBIN=$(GOBIN) go clean
+	rm -rf $(GOBIN)/*
+	GOPATH=$(GOPATH) GOBIN=$(GOBIN) go clean -i
 
 .PHONY: dist
 dist:
