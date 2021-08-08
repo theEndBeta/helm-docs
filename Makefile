@@ -1,5 +1,13 @@
-yaml-docs:
-	go build github.com/theEndBeta/yaml-doc/cmd/helm-docs
+PROJECTNAME=$(shell basename "$(PWD)")
+
+GOBASE=$(shell pwd)
+GOPATH="$(GOBASE)/vendor:$(GOBASE)"
+GOBIN="$(GOBASE)/bin"
+
+
+.PHONY build
+build:
+	GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build -o $(GOBIN)/$(PROJECTNAME) ./cmd/yaml-docs
 
 .PHONY: fmt
 fmt:
@@ -11,7 +19,7 @@ test:
 
 .PHONY: clean
 clean:
-	rm -f yaml-docs
+	GOPATH=$(GOPATH) GOBIN=$(GOBIN) go clean
 
 .PHONY: dist
 dist:

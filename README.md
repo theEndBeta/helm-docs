@@ -1,10 +1,9 @@
-helm-docs
+yaml-docs
 =========
-[![Go Report Card](https://goreportcard.com/badge/github.com/norwoodj/helm-docs)](https://goreportcard.com/report/github.com/norwoodj/helm-docs)
+[![Go Report Card](https://goreportcard.com/badge/github.com/theEndBeta/yaml-docs)](https://goreportcard.com/report/github.com/theEndBeta/yaml-docs)
 
-The helm-docs tool auto-generates documentation from helm charts into markdown files. The resulting
-files contain metadata about their respective chart and a table with each of the chart's values, their defaults, and an
-optional description parsed from comments.
+The yaml-docs tool auto-generates documentation from yaml files into markdown files as a table with each of the files
+values, their defaults, and an optional description parsed from comments.
 
 The markdown generation is entirely [gotemplate](https://golang.org/pkg/text/template) driven. The tool parses metadata
 from charts and generates a number of sub-templates that can be referenced in a template file (by default `README.md.gotmpl`).
@@ -56,20 +55,20 @@ like `statefulset.image.tag` are documented even without a description comment. 
 the final table will be described in detail later in this document.
 
 ## Installation
-helm-docs can be installed using [homebrew](https://brew.sh/):
+<!-- helm-docs can be installed using [homebrew](https://brew.sh/): -->
 
-```bash
-brew install norwoodj/tap/helm-docs
-```
+<!-- ```bash -->
+<!-- brew install norwoodj/tap/helm-docs -->
+<!-- ``` -->
 
-or [scoop](https://scoop.sh):
+<!-- or [scoop](https://scoop.sh): -->
 
-```bash
-scoop install helm-docs
-```
+<!-- ```bash -->
+<!-- scoop install helm-docs -->
+<!-- ``` -->
 
-This will download and install the [latest release](https://github.com/norwoodj/helm-docs/releases/latest)
-of the tool.
+<!-- This will download and install the [latest release](https://github.com/norwoodj/helm-docs/releases/latest) -->
+<!-- of the tool. -->
 
 To build from source in this repository:
 
@@ -81,7 +80,7 @@ go build
 Or install from source:
 
 ```bash
-GO111MODULE=on go get github.com/norwoodj/helm-docs/cmd/helm-docs
+GO111MODULE=on go get github.com/theEndBeta/yaml-docs/cmd/yaml-docs
 ```
 
 ## Usage
@@ -145,58 +144,6 @@ each chart directory.
 
 If any of the specified template files is not found for a chart (you'll notice most of the example charts do not have a README.md.gotmpl)
 file, then the internal default template is used instead.
-
-In addition to extra defined templates you specify in these template files, there are quite a few built-in templates that
-can be used as well:
-
-| Name | Description |
-|------|-------------|
-| chart.header              | The main heading of the generated markdown file |
-| chart.name                | The _name_ field from the chart's `Chart.yaml` file |
-| chart.deprecationWarning  | A deprecation warning which is displayed when the _deprecated_ field from the chart's `Chart.yaml` file is `true` |
-| chart.description         | A description line containing the _description_ field from the chart's `Chart.yaml` file, or "" if that field is not set |
-| chart.version             | The _version_ field from the chart's `Chart.yaml` file |
-| chart.versionBadge        | A badge stating the current version of the chart |
-| chart.type                | The _type_ field from the chart's `Chart.yaml` file |
-| chart.typeBadge           | A badge stating the current type of the chart |
-| chart.appVersion          | The _appVersion_ field from the chart's `Chart.yaml` file |
-| chart.appVersionBadge     | A badge stating the current appVersion of the chart |
-| chart.homepage            | The _home_ link from the chart's `Chart.yaml` file, or "" if that field is not set |
-| chart.homepageLine        | A text line stating the current homepage of the chart |
-| chart.maintainersHeader   | The heading for the chart maintainers section |
-| chart.maintainersTable    | A table of the chart's maintainers |
-| chart.maintainersSection  | A section headed by the maintainersHeader from above containing the maintainersTable from above or "" if there are no maintainers |
-| chart.sourcesHeader       | The heading for the chart sources section |
-| chart.sourcesList         | A list of the chart's sources |
-| chart.sourcesSection      | A section headed by the sourcesHeader from above containing the sourcesList from above or "" if there are no sources |
-| chart.kubeVersion         | The _kubeVersion_ field from the chart's `Chart.yaml` file |
-| chart.kubeVersionLine     | A text line stating the required Kubernetes version for the chart |~~~~
-| chart.requirementsHeader  | The heading for the chart requirements section |
-| chart.requirementsTable   | A table of the chart's required sub-charts |
-| chart.requirementsSection | A section headed by the requirementsHeader from above containing the kubeVersionLine and/or the requirementsTable from above or "" if there are no requirements |
-| chart.valuesHeader        | The heading for the chart values section |
-| chart.valuesTable         | A table of the chart's values parsed from the `values.yaml` file (see below) |
-| chart.valuesSection       | A section headed by the valuesHeader from above containing the valuesTable from above or "" if there are no values |
-
-The default internal template mentioned above uses many of these and looks like this:
-```
-{{ template "chart.header" . }}
-{{ template "chart.deprecationWarning" . }}
-
-{{ template "chart.badgesSection" . }}
-
-{{ template "chart.description" . }}
-
-{{ template "chart.homepageLine" . }}
-
-{{ template "chart.maintainersSection" . }}
-
-{{ template "chart.sourcesSection" . }}
-
-{{ template "chart.requirementsSection" . }}
-
-{{ template "chart.valuesSection" . }}
-```
 
 The tool also includes the [sprig templating library](https://github.com/Masterminds/sprig), so those functions can be used
 in the templates you supply.
@@ -314,8 +261,8 @@ service:
   annotations: []
 ```
 
-The order is important. The first comment line(s) must be the one specifying the key or using the auto-detection feature and
-the description for the field. The `@default` comment must follow.
+The order is important. The first comment line(s) must be the one specifying the key or using the auto-detection feature
+and the description for the field. The `@default` comment must follow.
 
 See [here](./example-charts/custom-template/values.yaml) for an example.
 
