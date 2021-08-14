@@ -1,15 +1,36 @@
-yaml-docs
+# yaml-docs
 =========
 [![Go Report Card](https://goreportcard.com/badge/github.com/theEndBeta/yaml-docs)](https://goreportcard.com/report/github.com/theEndBeta/yaml-docs)
 
 The yaml-docs tool auto-generates documentation from yaml files into markdown files as a table with each of the files
 values, their defaults, and an optional description parsed from comments.
 
+**Note:** This was originally forked from [norwoodj/helm-docs]( https://github.com/norwoodj/helm-docs ), which is build
+around [Helm](helm.sh) charts, and there are a number of hold-overs in the examples and naming.
+
+
+## Usage
+
+```default
+Usage:
+  yaml-docs [flags]
+
+Flags:
+  -d, --dry-run                    don't actually render any markdown files just print to stdout passed
+  -h, --help                       help for yaml-docs
+  -l, --log-level string           Level of logs that should printed, one of (panic, fatal, error, warning, info, debug, trace) (default "info")
+  -o, --output-file string         markdown file path relative to input template to which rendered documentation will be written (default "README.md")
+  -s, --sort-values-order string   order in which to sort the values table ("alphanum" or "file") (default "alphanum")
+  -t, --template-files strings     gotemplate file paths relative to each chart directory from which documentation will be generated (default [README.md.gotmpl])
+  -f, --values-file strings        yaml values file to be parsed into values table. Can be specified multiple times
+```
+
 The markdown generation is entirely [gotemplate](https://golang.org/pkg/text/template) driven. The tool parses metadata
 from charts and generates a number of sub-templates that can be referenced in a template file (by default `README.md.gotmpl`).
 If no template file is provided, the tool has a default internal template that will generate a reasonably formatted README.
 
 The most useful aspect of this tool is the auto-detection of field descriptions from comments:
+
 ```yaml
 config:
   databasesToCreate:
@@ -73,7 +94,7 @@ the final table will be described in detail later in this document.
 To build from source in this repository:
 
 ```bash
-cd cmd/helm-docs
+cd cmd/yaml-docs
 go build
 ```
 
@@ -96,51 +117,35 @@ pre-commit install
 pre-commit install-hooks
 ```
 
-Future changes to your chart's `requirements.yaml`, `values.yaml`, `Chart.yaml`, or `README.md.gotmpl` files will cause an update to documentation when you commit.
+Future changes to your project's `yaml` or `README.md.gotmpl` files will cause an update to documentation when you commit.
 
 ### Running the binary directly
 
-To run and generate documentation into READMEs for all helm charts within or recursively contained by a directory:
+To run and generate documentation into READMEs:
 
 ```bash
-helm-docs
+yaml-docs -f my-values.yaml
 # OR
-helm-docs --dry-run # prints generated documentation to stdout rather than modifying READMEs
+yaml-docs --dry-run # prints generated documentation to stdout rather than modifying READMEs
 ```
 
-The tool searches recursively through subdirectories of the current directory for `Chart.yaml` files and generates documentation
-for every chart that it finds.
+<!-- ### Using docker -->
 
-### Using docker
+<!-- You can mount a directory with charts under `/helm-docs` within the container. -->
 
-You can mount a directory with charts under `/helm-docs` within the container.
+<!-- Then run: -->
 
-Then run:
-
-```bash
-docker run --rm --volume "$(pwd):/helm-docs" -u $(id -u) jnorwood/helm-docs:latest
-```
-
-## Ignoring Chart Directories
-helm-docs supports a `.helmdocsignore` file, exactly like a `.gitignore` file in which one can specify directories to ignore
-when searching for charts. Directories specified need not be charts themselves, so parent directories containing potentially
-many charts can be ignored and none of the charts underneath them will be processed. You may also directly reference the
-Chart.yaml file for a chart to skip processing for it.
+<!-- ```bash -->
+<!-- docker run --rm --volume "$(pwd):/helm-docs" -u $(id -u) jnorwood/helm-docs:latest -->
+<!-- ``` -->
 
 ## Markdown Rendering
-There are two important parameters to be aware of when running helm-docs. `--chart-search-root` specifies the directory
-under which the tool will recursively search for charts to render documentation for. `--template-files` specifies the list
-of gotemplate files that should be used in rendering the resulting markdown file for each chart found. By default
-`--chart-search-root=.` and `--template-files=README.md.gotmpl`.
 
-If a template file is specified as a filename only as with the default above, the file is interpreted as being _relative to each chart directory found_.
-If however a template file is specified as a relative path, e.g. the first of `--template-files=./_templates.gotmpl --template-files=README.md.gotmpl`
-then the file is interpreted as being relative to the `chart-search-root`.
+`--template-files` specifies the list of gotemplate files that should be used in rendering the resulting markdown file
+for each chart found.
+By default `--template-files=README.md.gotmpl`.
 
-This repo is a good example of this in action. If you take a look at the [.pre-commit-config.yaml file](./.pre-commit-config.yaml)
-here, you'll see our search root is set to [example-charts](./example-charts) and the list of templates used for each chart
-is the [_templates.gotmpl file in that directory](./example-charts/_templates.gotmpl) and the README.md.gotmpl file in
-each chart directory.
+Files are always interpreted as being _relative to the working directory_.
 
 If any of the specified template files is not found for a chart (you'll notice most of the example charts do not have a README.md.gotmpl)
 file, then the internal default template is used instead.
