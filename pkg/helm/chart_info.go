@@ -149,16 +149,10 @@ func ParseValues(valuesFileNames []string) (*yaml.Node, error) {
 			values = yaml.Node{}
 		}
 
-		log.Warn(values.Kind)
-		var level map[string]yaml.Node
-		err = values.Decode(&level)
-
 		if err != nil {
 			log.Warnf("Error parsing values from file: %s", valuesFile)
 			values = yaml.Node{}
 		}
-
-		log.Warn(level)
 
 		valuesNodes[idx] = values
 	}

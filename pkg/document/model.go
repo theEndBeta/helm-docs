@@ -13,9 +13,7 @@ import (
 type valueRow struct {
 	Key             string
 	Type            string
-	AutoDefault     string
 	Default         string
-	AutoDescription string
 	Description     string
 	Column          int
 	LineNumber      int

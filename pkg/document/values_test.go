@@ -20,21 +20,21 @@ func parseYamlValues(yamlValues string) *yaml.Node {
 }
 
 func TestEmptyValues(t *testing.T) {
-	helmValues := parseYamlValues(`{}`)
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	yamlValues := parseYamlValues(`{}`)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 0)
 }
 
 func TestSimpleValues(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 echo: 0
 foxtrot: true
 hello: "world"
 oscar: 3.14159
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 4)
@@ -42,34 +42,26 @@ oscar: 3.14159
 	assert.Equal(t, "echo", valuesRows[0].Key)
 	assert.Equal(t, intType, valuesRows[0].Type, intType)
 	assert.Equal(t, "`0`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "foxtrot", valuesRows[1].Key)
 	assert.Equal(t, boolType, valuesRows[1].Type)
 	assert.Equal(t, "`true`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 
 	assert.Equal(t, "hello", valuesRows[2].Key)
 	assert.Equal(t, stringType, valuesRows[2].Type)
 	assert.Equal(t, "`\"world\"`", valuesRows[2].Default)
-	assert.Equal(t, "", valuesRows[2].AutoDefault)
 	assert.Equal(t, "", valuesRows[2].Description)
-	assert.Equal(t, "", valuesRows[2].AutoDescription)
 
 	assert.Equal(t, "oscar", valuesRows[3].Key)
 	assert.Equal(t, floatType, valuesRows[3].Type)
 	assert.Equal(t, "`3.14159`", valuesRows[3].Default)
-	assert.Equal(t, "", valuesRows[3].AutoDefault)
 	assert.Equal(t, "", valuesRows[3].Description)
-	assert.Equal(t, "", valuesRows[3].AutoDescription)
 }
 
 func TestSimpleValuesWithDescriptions(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 # -- echo
 echo: 0
 # -- foxtrot
@@ -80,7 +72,7 @@ hello: "world"
 oscar: 3.14159
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 4)
@@ -88,34 +80,26 @@ oscar: 3.14159
 	assert.Equal(t, "echo", valuesRows[0].Key)
 	assert.Equal(t, intType, valuesRows[0].Type, intType)
 	assert.Equal(t, "`0`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "echo", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "foxtrot", valuesRows[1].Key)
 	assert.Equal(t, boolType, valuesRows[1].Type)
 	assert.Equal(t, "`true`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "foxtrot", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 
 	assert.Equal(t, "hello", valuesRows[2].Key)
 	assert.Equal(t, stringType, valuesRows[2].Type)
 	assert.Equal(t, "`\"world\"`", valuesRows[2].Default)
-	assert.Equal(t, "", valuesRows[2].AutoDefault)
 	assert.Equal(t, "hello", valuesRows[2].Description)
-	assert.Equal(t, "", valuesRows[2].AutoDescription)
 
 	assert.Equal(t, "oscar", valuesRows[3].Key)
 	assert.Equal(t, floatType, valuesRows[3].Type)
 	assert.Equal(t, "`3.14159`", valuesRows[3].Default)
-	assert.Equal(t, "", valuesRows[3].AutoDefault)
 	assert.Equal(t, "oscar", valuesRows[3].Description)
-	assert.Equal(t, "", valuesRows[3].AutoDescription)
 }
 
 func TestSimpleValuesWithDescriptionsAndDefaults(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 # -- echo
 # @default -- some
 echo: 0
@@ -130,7 +114,7 @@ hello: "world"
 oscar: 3.14159
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 4)
@@ -138,40 +122,32 @@ oscar: 3.14159
 	assert.Equal(t, "echo", valuesRows[0].Key)
 	assert.Equal(t, intType, valuesRows[0].Type, intType)
 	assert.Equal(t, "some", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "echo", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "foxtrot", valuesRows[1].Key)
 	assert.Equal(t, boolType, valuesRows[1].Type)
 	assert.Equal(t, "explicit", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "foxtrot", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 
 	assert.Equal(t, "hello", valuesRows[2].Key)
 	assert.Equal(t, stringType, valuesRows[2].Type)
 	assert.Equal(t, "default", valuesRows[2].Default)
-	assert.Equal(t, "", valuesRows[2].AutoDefault)
 	assert.Equal(t, "hello", valuesRows[2].Description)
-	assert.Equal(t, "", valuesRows[2].AutoDescription)
 
 	assert.Equal(t, "oscar", valuesRows[3].Key)
 	assert.Equal(t, floatType, valuesRows[3].Type)
 	assert.Equal(t, "values", valuesRows[3].Default)
-	assert.Equal(t, "", valuesRows[3].AutoDefault)
 	assert.Equal(t, "oscar", valuesRows[3].Description)
-	assert.Equal(t, "", valuesRows[3].AutoDescription)
 }
 
 func TestNestedValues(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 recursive:
   echo: cat
 oscar: dog
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -179,20 +155,16 @@ oscar: dog
 	assert.Equal(t, "oscar", valuesRows[0].Key)
 	assert.Equal(t, stringType, valuesRows[0].Type)
 	assert.Equal(t, "`\"dog\"`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "recursive.echo", valuesRows[1].Key)
 	assert.Equal(t, stringType, valuesRows[1].Type)
 	assert.Equal(t, "`\"cat\"`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 }
 
 func TestNestedValuesWithDescriptions(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 recursive:
   # -- echo
   echo: cat
@@ -200,7 +172,7 @@ recursive:
 oscar: dog
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -208,20 +180,16 @@ oscar: dog
 	assert.Equal(t, "oscar", valuesRows[0].Key)
 	assert.Equal(t, stringType, valuesRows[0].Type)
 	assert.Equal(t, "`\"dog\"`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "oscar", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "recursive.echo", valuesRows[1].Key)
 	assert.Equal(t, stringType, valuesRows[1].Type)
 	assert.Equal(t, "`\"cat\"`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "echo", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 }
 
 func TestNestedValuesWithDescriptionsAndDefaults(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 recursive:
   # -- echo
   # @default -- custom
@@ -231,7 +199,7 @@ recursive:
 oscar: dog
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -239,25 +207,21 @@ oscar: dog
 	assert.Equal(t, "oscar", valuesRows[0].Key)
 	assert.Equal(t, stringType, valuesRows[0].Type)
 	assert.Equal(t, "default", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "oscar", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "recursive.echo", valuesRows[1].Key)
 	assert.Equal(t, stringType, valuesRows[1].Type)
 	assert.Equal(t, "custom", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "echo", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 }
 
 func TestEmptyObject(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 recursive: {}
 oscar: dog
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -265,26 +229,22 @@ oscar: dog
 	assert.Equal(t, "oscar", valuesRows[0].Key, "oscar")
 	assert.Equal(t, stringType, valuesRows[0].Type)
 	assert.Equal(t, "`\"dog\"`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "recursive", valuesRows[1].Key)
 	assert.Equal(t, objectType, valuesRows[1].Type)
 	assert.Equal(t, "`{}`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 }
 
 func TestEmptyObjectWithDescription(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 # -- an empty object
 recursive: {}
 oscar: dog
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -292,27 +252,23 @@ oscar: dog
 	assert.Equal(t, "oscar", valuesRows[0].Key)
 	assert.Equal(t, stringType, valuesRows[0].Type)
 	assert.Equal(t, "`\"dog\"`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "recursive", valuesRows[1].Key)
 	assert.Equal(t, objectType, valuesRows[1].Type)
 	assert.Equal(t, "`{}`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "an empty object", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 }
 
 func TestEmptyObjectWithDescriptionAndDefaults(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 # -- an empty object
 # @default -- default
 recursive: {}
 oscar: dog
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -320,24 +276,20 @@ oscar: dog
 	assert.Equal(t, "oscar", valuesRows[0].Key)
 	assert.Equal(t, stringType, valuesRows[0].Type)
 	assert.Equal(t, "`\"dog\"`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "recursive", valuesRows[1].Key)
 	assert.Equal(t, objectType, valuesRows[1].Type)
 	assert.Equal(t, "default", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "an empty object", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 }
 func TestEmptyList(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 birds: []
 echo: cat
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -345,27 +297,23 @@ echo: cat
 	assert.Equal(t, "birds", valuesRows[0].Key)
 	assert.Equal(t, listType, valuesRows[0].Type)
 	assert.Equal(t, "`[]`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "echo", valuesRows[1].Key)
 	assert.Equal(t, stringType, valuesRows[1].Type)
 	assert.Equal(t, "`\"cat\"`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 }
 
 func TestEmptyListWithDescriptions(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 # -- birds
 birds: []
 # -- echo
 echo: cat
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -373,20 +321,16 @@ echo: cat
 	assert.Equal(t, "birds", valuesRows[0].Key)
 	assert.Equal(t, listType, valuesRows[0].Type)
 	assert.Equal(t, "`[]`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "birds", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "echo", valuesRows[1].Key)
 	assert.Equal(t, stringType, valuesRows[1].Type)
 	assert.Equal(t, "`\"cat\"`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "echo", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 }
 
 func TestEmptyListWithDescriptionsAndDefaults(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 # -- birds
 # @default -- explicit
 birds: []
@@ -395,7 +339,7 @@ birds: []
 echo: cat
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -403,24 +347,20 @@ echo: cat
 	assert.Equal(t, "birds", valuesRows[0].Key)
 	assert.Equal(t, listType, valuesRows[0].Type)
 	assert.Equal(t, "explicit", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "birds", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "echo", valuesRows[1].Key)
 	assert.Equal(t, stringType, valuesRows[1].Type)
 	assert.Equal(t, "default value", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "echo", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 }
 
 func TestListOfStrings(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 cats: [echo, foxtrot]
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -428,21 +368,17 @@ cats: [echo, foxtrot]
 	assert.Equal(t, "cats[0]", valuesRows[0].Key)
 	assert.Equal(t, stringType, valuesRows[0].Type)
 	assert.Equal(t, "`\"echo\"`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "cats[1]", valuesRows[1].Key)
 	assert.Equal(t, stringType, valuesRows[1].Type)
 	assert.Equal(t, "`\"foxtrot\"`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 
 }
 
 func TestListOfStringsWithDescriptions(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 cats:
   # -- the black one
   - echo
@@ -450,7 +386,7 @@ cats:
   - foxtrot
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -458,21 +394,17 @@ cats:
 	assert.Equal(t, "cats[0]", valuesRows[0].Key)
 	assert.Equal(t, stringType, valuesRows[0].Type)
 	assert.Equal(t, "`\"echo\"`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "the black one", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "cats[1]", valuesRows[1].Key)
 	assert.Equal(t, stringType, valuesRows[1].Type)
 	assert.Equal(t, "`\"foxtrot\"`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "the friendly one", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 
 }
 
 func TestListOfStringsWithDescriptionsAndDefaults(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 	
 cats:
   # -- the black one
@@ -483,7 +415,7 @@ cats:
   - foxtrot
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -491,21 +423,17 @@ cats:
 	assert.Equal(t, "cats[0]", valuesRows[0].Key)
 	assert.Equal(t, stringType, valuesRows[0].Type)
 	assert.Equal(t, "explicit", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "the black one", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "cats[1]", valuesRows[1].Key)
 	assert.Equal(t, stringType, valuesRows[1].Type)
 	assert.Equal(t, "default value", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "the friendly one", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 
 }
 
 func TestListOfObjects(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 animals:
   - elements: [echo, foxtrot]
     type: cat
@@ -513,7 +441,7 @@ animals:
     type: dog
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 5)
@@ -521,41 +449,31 @@ animals:
 	assert.Equal(t, "animals[0].elements[0]", valuesRows[0].Key)
 	assert.Equal(t, stringType, valuesRows[0].Type)
 	assert.Equal(t, "`\"echo\"`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "animals[0].elements[1]", valuesRows[1].Key)
 	assert.Equal(t, stringType, valuesRows[1].Type)
 	assert.Equal(t, "`\"foxtrot\"`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 
 	assert.Equal(t, "animals[0].type", valuesRows[2].Key)
 	assert.Equal(t, stringType, valuesRows[2].Type)
 	assert.Equal(t, "`\"cat\"`", valuesRows[2].Default)
-	assert.Equal(t, "", valuesRows[2].AutoDefault)
 	assert.Equal(t, "", valuesRows[2].Description)
-	assert.Equal(t, "", valuesRows[2].AutoDescription)
 
 	assert.Equal(t, "animals[1].elements[0]", valuesRows[3].Key)
 	assert.Equal(t, stringType, valuesRows[3].Type)
 	assert.Equal(t, "`\"oscar\"`", valuesRows[3].Default)
-	assert.Equal(t, "", valuesRows[3].AutoDefault)
 	assert.Equal(t, "", valuesRows[3].Description)
-	assert.Equal(t, "", valuesRows[3].AutoDescription)
 
 	assert.Equal(t, "animals[1].type", valuesRows[4].Key)
 	assert.Equal(t, stringType, valuesRows[4].Type)
 	assert.Equal(t, "`\"dog\"`", valuesRows[4].Default)
-	assert.Equal(t, "", valuesRows[4].AutoDefault)
 	assert.Equal(t, "", valuesRows[4].Description)
-	assert.Equal(t, "", valuesRows[4].AutoDescription)
 }
 
 func TestListOfObjectsWithDescriptions(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 animals:
   - elements: 
       # -- the black one
@@ -570,7 +488,7 @@ animals:
     type: dog
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 5)
@@ -578,41 +496,31 @@ animals:
 	assert.Equal(t, "animals[0].elements[0]", valuesRows[0].Key)
 	assert.Equal(t, stringType, valuesRows[0].Type)
 	assert.Equal(t, "`\"echo\"`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "the black one", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "animals[0].elements[1]", valuesRows[1].Key)
 	assert.Equal(t, stringType, valuesRows[1].Type)
 	assert.Equal(t, "`\"foxtrot\"`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "the friendly one", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 
 	assert.Equal(t, "animals[0].type", valuesRows[2].Key)
 	assert.Equal(t, stringType, valuesRows[2].Type)
 	assert.Equal(t, "`\"cat\"`", valuesRows[2].Default)
-	assert.Equal(t, "", valuesRows[2].AutoDefault)
 	assert.Equal(t, "", valuesRows[2].Description)
-	assert.Equal(t, "", valuesRows[2].AutoDescription)
 
 	assert.Equal(t, "animals[1].elements[0]", valuesRows[3].Key)
 	assert.Equal(t, stringType, valuesRows[3].Type)
 	assert.Equal(t, "`\"oscar\"`", valuesRows[3].Default)
-	assert.Equal(t, "", valuesRows[3].AutoDefault)
 	assert.Equal(t, "the sleepy one", valuesRows[3].Description)
-	assert.Equal(t, "", valuesRows[3].AutoDescription)
 
 	assert.Equal(t, "animals[1].type", valuesRows[4].Key)
 	assert.Equal(t, stringType, valuesRows[4].Type)
 	assert.Equal(t, "`\"dog\"`", valuesRows[4].Default)
-	assert.Equal(t, "", valuesRows[4].AutoDefault)
 	assert.Equal(t, "", valuesRows[4].Description)
-	assert.Equal(t, "", valuesRows[4].AutoDescription)
 }
 
 func TestListOfObjectsWithDescriptionsAndDefaults(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 animals:
   - elements: 
       # -- the black one
@@ -630,7 +538,7 @@ animals:
     type: dog
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 5)
@@ -638,41 +546,31 @@ animals:
 	assert.Equal(t, "animals[0].elements[0]", valuesRows[0].Key)
 	assert.Equal(t, stringType, valuesRows[0].Type)
 	assert.Equal(t, "explicit", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "the black one", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "animals[0].elements[1]", valuesRows[1].Key)
 	assert.Equal(t, stringType, valuesRows[1].Type)
 	assert.Equal(t, "default", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "the friendly one", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 
 	assert.Equal(t, "animals[0].type", valuesRows[2].Key)
 	assert.Equal(t, stringType, valuesRows[2].Type)
 	assert.Equal(t, "`\"cat\"`", valuesRows[2].Default)
-	assert.Equal(t, "", valuesRows[2].AutoDefault)
 	assert.Equal(t, "", valuesRows[2].Description)
-	assert.Equal(t, "", valuesRows[2].AutoDescription)
 
 	assert.Equal(t, "animals[1].elements[0]", valuesRows[3].Key)
 	assert.Equal(t, stringType, valuesRows[3].Type)
 	assert.Equal(t, "value", valuesRows[3].Default)
-	assert.Equal(t, "", valuesRows[3].AutoDefault)
 	assert.Equal(t, "the sleepy one", valuesRows[3].Description)
-	assert.Equal(t, "", valuesRows[3].AutoDescription)
 
 	assert.Equal(t, "animals[1].type", valuesRows[4].Key)
 	assert.Equal(t, stringType, valuesRows[4].Type)
 	assert.Equal(t, "`\"dog\"`", valuesRows[4].Default)
-	assert.Equal(t, "", valuesRows[4].AutoDefault)
 	assert.Equal(t, "", valuesRows[4].Description)
-	assert.Equal(t, "", valuesRows[4].AutoDescription)
 }
 
 func TestDescriptionOnList(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 # -- all the animals of the house
 animals:
   - elements: [echo, foxtrot]
@@ -681,7 +579,7 @@ animals:
     type: dog
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 1)
@@ -689,13 +587,11 @@ animals:
 	assert.Equal(t, "animals", valuesRows[0].Key)
 	assert.Equal(t, listType, valuesRows[0].Type)
 	assert.Equal(t, "`[{\"elements\":[\"echo\",\"foxtrot\"],\"type\":\"cat\"},{\"elements\":[\"oscar\"],\"type\":\"dog\"}]`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "all the animals of the house", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 }
 
 func TestDescriptionAndDefaultOnList(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 # -- all the animals of the house
 # @default -- cat and dog
 animals:
@@ -705,7 +601,7 @@ animals:
     type: dog
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 1)
@@ -713,13 +609,11 @@ animals:
 	assert.Equal(t, "animals", valuesRows[0].Key)
 	assert.Equal(t, listType, valuesRows[0].Type)
 	assert.Equal(t, "cat and dog", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "all the animals of the house", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 }
 
 func TestDescriptionAndDefaultOnObjectUnderList(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 animals:
   # -- all the cats of the house
   # @default -- only cats here
@@ -729,7 +623,7 @@ animals:
     type: dog
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 3)
@@ -737,27 +631,21 @@ animals:
 	assert.Equal(t, "animals[0]", valuesRows[0].Key)
 	assert.Equal(t, objectType, valuesRows[0].Type)
 	assert.Equal(t, "only cats here", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "all the cats of the house", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "animals[1].elements[0]", valuesRows[1].Key)
 	assert.Equal(t, stringType, valuesRows[1].Type)
 	assert.Equal(t, "`\"oscar\"`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 
 	assert.Equal(t, "animals[1].type", valuesRows[2].Key)
 	assert.Equal(t, stringType, valuesRows[2].Type)
 	assert.Equal(t, "`\"dog\"`", valuesRows[2].Default)
-	assert.Equal(t, "", valuesRows[2].AutoDefault)
 	assert.Equal(t, "", valuesRows[2].Description)
-	assert.Equal(t, "", valuesRows[2].AutoDescription)
 }
 
 func TestDescriptionOnObjectUnderObject(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 animals:
   # -- animals listed by their various characteristics
   byTrait:
@@ -766,7 +654,7 @@ animals:
     sleepy: [oscar]
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 1)
@@ -774,13 +662,11 @@ animals:
 	assert.Equal(t, "animals.byTrait", valuesRows[0].Key)
 	assert.Equal(t, objectType, valuesRows[0].Type)
 	assert.Equal(t, "`{\"friendly\":[\"foxtrot\",\"oscar\"],\"mean\":[\"echo\"],\"sleepy\":[\"oscar\"]}`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "animals listed by their various characteristics", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 }
 
 func TestDescriptionAndDefaultOnObjectUnderObject(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 animals:
   # -- animals listed by their various characteristics
   # @default -- animals, you know
@@ -790,7 +676,7 @@ animals:
     sleepy: [oscar]
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 1)
@@ -798,13 +684,11 @@ animals:
 	assert.Equal(t, "animals.byTrait", valuesRows[0].Key)
 	assert.Equal(t, objectType, valuesRows[0].Type)
 	assert.Equal(t, "animals, you know", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "animals listed by their various characteristics", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 }
 
 func TestDescriptionsDownChain(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 # -- animal stuff
 animals:
   # -- animals listed by their various characteristics
@@ -818,7 +702,7 @@ animals:
     sleepy: [oscar]
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 4)
@@ -826,34 +710,26 @@ animals:
 	assert.Equal(t, "animals", valuesRows[0].Key)
 	assert.Equal(t, objectType, valuesRows[0].Type)
 	assert.Equal(t, "`{\"byTrait\":{\"friendly\":[\"foxtrot\",\"oscar\"],\"mean\":[\"echo\"],\"sleepy\":[\"oscar\"]}}`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "animal stuff", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "animals.byTrait", valuesRows[1].Key)
 	assert.Equal(t, objectType, valuesRows[1].Type)
 	assert.Equal(t, "`{\"friendly\":[\"foxtrot\",\"oscar\"],\"mean\":[\"echo\"],\"sleepy\":[\"oscar\"]}`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "animals listed by their various characteristics", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 
 	assert.Equal(t, "animals.byTrait.friendly", valuesRows[2].Key)
 	assert.Equal(t, listType, valuesRows[2].Type)
 	assert.Equal(t, "`[\"foxtrot\",\"oscar\"]`", valuesRows[2].Default)
-	assert.Equal(t, "", valuesRows[2].AutoDefault)
 	assert.Equal(t, "the friendly animals of the house", valuesRows[2].Description)
-	assert.Equal(t, "", valuesRows[2].AutoDescription)
 
 	assert.Equal(t, "animals.byTrait.friendly[0]", valuesRows[3].Key)
 	assert.Equal(t, stringType, valuesRows[3].Type)
 	assert.Equal(t, "`\"foxtrot\"`", valuesRows[3].Default)
-	assert.Equal(t, "", valuesRows[3].AutoDefault)
 	assert.Equal(t, "best cat ever", valuesRows[3].Description)
-	assert.Equal(t, "", valuesRows[3].AutoDescription)
 }
 
 func TestDescriptionsAndDefaultsDownChain(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 # -- animal stuff
 # @default -- some
 animals:
@@ -871,7 +747,7 @@ animals:
     sleepy: [oscar]
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 4)
@@ -879,34 +755,26 @@ animals:
 	assert.Equal(t, "animals", valuesRows[0].Key)
 	assert.Equal(t, objectType, valuesRows[0].Type)
 	assert.Equal(t, "some", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "animal stuff", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "animals.byTrait", valuesRows[1].Key)
 	assert.Equal(t, objectType, valuesRows[1].Type)
 	assert.Equal(t, "explicit", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "animals listed by their various characteristics", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 
 	assert.Equal(t, "animals.byTrait.friendly", valuesRows[2].Key)
 	assert.Equal(t, listType, valuesRows[2].Type)
 	assert.Equal(t, "default", valuesRows[2].Default)
-	assert.Equal(t, "", valuesRows[2].AutoDefault)
 	assert.Equal(t, "the friendly animals of the house", valuesRows[2].Description)
-	assert.Equal(t, "", valuesRows[2].AutoDescription)
 
 	assert.Equal(t, "animals.byTrait.friendly[0]", valuesRows[3].Key)
 	assert.Equal(t, stringType, valuesRows[3].Type)
 	assert.Equal(t, "value", valuesRows[3].Default)
-	assert.Equal(t, "", valuesRows[3].AutoDefault)
 	assert.Equal(t, "best cat ever", valuesRows[3].Description)
-	assert.Equal(t, "", valuesRows[3].AutoDescription)
 }
 
 func TestNilValues(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 animals:
   # -- (list) the list of birds we have
   birds:
@@ -916,7 +784,7 @@ animals:
   nonWeirdCats:
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 3)
@@ -924,27 +792,21 @@ animals:
 	assert.Equal(t, "animals.birdCount", valuesRows[0].Key)
 	assert.Equal(t, intType, valuesRows[0].Type)
 	assert.Equal(t, "`nil`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "the number of birds we have", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "animals.birds", valuesRows[1].Key)
 	assert.Equal(t, listType, valuesRows[1].Type)
 	assert.Equal(t, "`nil`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "the list of birds we have", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 
 	assert.Equal(t, "animals.nonWeirdCats", valuesRows[2].Key)
 	assert.Equal(t, stringType, valuesRows[2].Type)
 	assert.Equal(t, "`nil`", valuesRows[2].Default)
-	assert.Equal(t, "", valuesRows[2].AutoDefault)
 	assert.Equal(t, "the cats that we have that are not weird", valuesRows[2].Description)
-	assert.Equal(t, "", valuesRows[2].AutoDescription)
 }
 
 func TestNilValuesWithDefaults(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 animals:
   # -- (list) the list of birds we have
   # @default -- explicit
@@ -957,7 +819,7 @@ animals:
   nonWeirdCats:
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 3)
@@ -965,34 +827,28 @@ animals:
 	assert.Equal(t, "animals.birdCount", valuesRows[0].Key)
 	assert.Equal(t, intType, valuesRows[0].Type)
 	assert.Equal(t, "some", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "the number of birds we have", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "animals.birds", valuesRows[1].Key)
 	assert.Equal(t, listType, valuesRows[1].Type)
 	assert.Equal(t, "explicit", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "the list of birds we have", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 
 	assert.Equal(t, "animals.nonWeirdCats", valuesRows[2].Key)
 	assert.Equal(t, stringType, valuesRows[2].Type)
 	assert.Equal(t, "default", valuesRows[2].Default)
-	assert.Equal(t, "", valuesRows[2].AutoDefault)
 	assert.Equal(t, "the cats that we have that are not weird", valuesRows[2].Description)
-	assert.Equal(t, "", valuesRows[2].AutoDescription)
 }
 
 func TestKeysWithSpecialCharacters(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 websites:
   stupidchess.jmn23.com: defunct
 fullNames:
   John Norwood: me
 `)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -1000,20 +856,16 @@ fullNames:
 	assert.Equal(t, `fullNames."John Norwood"`, valuesRows[0].Key)
 	assert.Equal(t, stringType, valuesRows[0].Type)
 	assert.Equal(t, "`\"me\"`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, `websites."stupidchess.jmn23.com"`, valuesRows[1].Key)
 	assert.Equal(t, stringType, valuesRows[1].Type)
 	assert.Equal(t, "`\"defunct\"`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 }
 
 func TestKeysWithSpecialCharactersWithDescriptions(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 websites:
   # -- status of the stupidchess website
   stupidchess.jmn23.com: defunct
@@ -1022,7 +874,7 @@ fullNames:
   John Norwood: me
 `)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -1030,20 +882,16 @@ fullNames:
 	assert.Equal(t, `fullNames."John Norwood"`, valuesRows[0].Key)
 	assert.Equal(t, stringType, valuesRows[0].Type)
 	assert.Equal(t, "`\"me\"`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "who am I", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, `websites."stupidchess.jmn23.com"`, valuesRows[1].Key)
 	assert.Equal(t, stringType, valuesRows[1].Type)
 	assert.Equal(t, "`\"defunct\"`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "status of the stupidchess website", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 }
 
 func TestKeysWithSpecialCharactersWithDescriptionsAndDefaults(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 websites:
   # -- status of the stupidchess website
   # @default -- value
@@ -1054,7 +902,7 @@ fullNames:
   John Norwood: me
 `)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -1062,20 +910,16 @@ fullNames:
 	assert.Equal(t, `fullNames."John Norwood"`, valuesRows[0].Key)
 	assert.Equal(t, stringType, valuesRows[0].Type)
 	assert.Equal(t, "default", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "who am I", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, `websites."stupidchess.jmn23.com"`, valuesRows[1].Key)
 	assert.Equal(t, stringType, valuesRows[1].Type)
 	assert.Equal(t, "value", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "status of the stupidchess website", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 }
 
 func TestRequiredSymbols(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 # -- is she friendly?
 foxtrot: true
 
@@ -1083,7 +927,7 @@ foxtrot: true
 hello: "world"
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 2)
@@ -1091,21 +935,17 @@ hello: "world"
 	assert.Equal(t, "foxtrot", valuesRows[0].Key)
 	assert.Equal(t, boolType, valuesRows[0].Type)
 	assert.Equal(t, "`true`", valuesRows[0].Default)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "is she friendly?", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 
 	assert.Equal(t, "hello", valuesRows[1].Key)
 	assert.Equal(t, stringType, valuesRows[1].Type)
 	assert.Equal(t, "`\"world\"`", valuesRows[1].Default)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "", valuesRows[1].Description)
-	assert.Equal(t, "", valuesRows[1].AutoDescription)
 }
 
 
 func TestMultilineDescription(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 animals:
   # -- The best kind of animal probably, allow me to list their many varied benefits.
   # Cats are very funny, and quite friendly, in almost all cases
@@ -1115,41 +955,38 @@ animals:
       - foxtrot
 `)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 1)
 
 	assert.Equal(t, "animals.cats", valuesRows[0].Key)
 	assert.Equal(t, listType, valuesRows[0].Type)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "The list of cats that _I_ own", valuesRows[0].Default)
 	assert.Equal(t, "The best kind of animal probably, allow me to list their many varied benefits. Cats are very funny, and quite friendly, in almost all cases", valuesRows[0].Description)
-	assert.Equal(t, "", valuesRows[0].AutoDescription)
 }
 
 func TestMultilineDescriptionWithoutValue(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 animals:
   # -- (list) I mean, dogs are quite nice too...
   # @default -- The list of dogs that _I_ own
   dogs:
 `)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 1)
 
 	assert.Equal(t, "animals.dogs", valuesRows[0].Key)
 	assert.Equal(t, listType, valuesRows[0].Type)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "The list of dogs that _I_ own", valuesRows[0].Default)
 	assert.Equal(t, "I mean, dogs are quite nice too...", valuesRows[0].Description)
 }
 
-func TestAutoTyping(t *testing.T) {
-	helmValues := parseYamlValues(`
+func TestInferredTyping(t *testing.T) {
+	yamlValues := parseYamlValues(`
 # -- pets?
 animals:
   # -- multiple cats?
@@ -1166,7 +1003,7 @@ animals:
   porcupines:
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 7)
@@ -1201,7 +1038,7 @@ animals:
 }
 
 func TestExplicitTyping(t *testing.T) {
-	helmValues := parseYamlValues(`
+	yamlValues := parseYamlValues(`
 animals:
   # -- no type for cats
   cats:
@@ -1212,26 +1049,23 @@ animals:
   fish:
 	`)
 
-	valuesRows, err := getSortedValuesTableRows(helmValues)
+	valuesRows, err := getSortedValuesTableRows(yamlValues)
 
 	assert.Nil(t, err)
 	assert.Len(t, valuesRows, 3)
 
 	assert.Equal(t, "animals.cats", valuesRows[0].Key)
 	assert.Equal(t, stringType, valuesRows[0].Type)
-	assert.Equal(t, "", valuesRows[0].AutoDefault)
 	assert.Equal(t, "`nil`", valuesRows[0].Default)
 	assert.Equal(t, "no type for cats", valuesRows[0].Description)
 
 	assert.Equal(t, "animals.dogs", valuesRows[1].Key)
 	assert.Equal(t, listType, valuesRows[1].Type)
-	assert.Equal(t, "", valuesRows[1].AutoDefault)
 	assert.Equal(t, "nil", valuesRows[1].Default)
 	assert.Equal(t, "dogs should be a list", valuesRows[1].Description)
 
 	assert.Equal(t, "animals.fish", valuesRows[2].Key)
 	assert.Equal(t, "Mermen", valuesRows[2].Type)
-	assert.Equal(t, "", valuesRows[2].AutoDefault)
 	assert.Equal(t, "`nil`", valuesRows[2].Default)
 	assert.Equal(t, "can haz Mermen?", valuesRows[2].Description)
 }
