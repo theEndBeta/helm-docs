@@ -117,20 +117,54 @@ func parseValuesFileComments(valuesPath string) (map[string]ValueDescription, er
 	return keyToDescriptions, nil
 }
 
-func ParseChartInformation(valuesFileName string) (DocumentationInfo, error) {
-	var docInfo DocumentationInfo
-	var err error
+func _joinValuesFiles(valuesNodes []yaml.Node) (yaml.Node) {
 
-	values, err := parseValuesFile(valuesFileName)
-	if err != nil {
-		return docInfo, err
+	totalLen := 0
+	for _, node := range valuesNodes {
+		totalLen += len(node.Content)
 	}
 
-	docInfo.Values = &values
-	docInfo.ValuesDescriptions, err = parseValuesFileComments(valuesFileName)
-	if err != nil {
-		return docInfo, err
+	mergedValuesContent := make([]*yaml.Node, totalLen)
+	idx := 0
+	for _, node := range valuesNodes {
+		idx += copy(mergedValuesContent[idx:], node.Content)
 	}
 
-	return docInfo, nil
+	mergedValues := yaml.Node{
+		Kind: yaml.DocumentNode,
+		Content: mergedValuesContent,
+	}
+
+	return mergedValues
+}
+
+func ParseValues(valuesFileNames []string) (*yaml.Node, error) {
+
+	valuesNodes := make([]yaml.Node, len(valuesFileNames))
+
+	for idx, valuesFile := range valuesFileNames {
+		values, err := parseValuesFile(valuesFile)
+		if err != nil {
+			log.Warnf("Error parsing values from file: %s", valuesFile)
+			values = yaml.Node{}
+		}
+
+		log.Warn(values.Kind)
+		var level map[string]yaml.Node
+		err = values.Decode(&level)
+
+		if err != nil {
+			log.Warnf("Error parsing values from file: %s", valuesFile)
+			values = yaml.Node{}
+		}
+
+		log.Warn(level)
+
+		valuesNodes[idx] = values
+	}
+
+	mergedValues := _joinValuesFiles(valuesNodes)
+
+
+	return &mergedValues, nil
 }

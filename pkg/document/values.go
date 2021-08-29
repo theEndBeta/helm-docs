@@ -75,32 +75,27 @@ func getTypeName(value interface{}) string {
 	return ""
 }
 
-func parseNilValueType(key string, description helm.ValueDescription, autoDescription helm.ValueDescription, column int, lineNumber int) valueRow {
-	if len(description.Description) == 0 {
-		description.Description = autoDescription.Description
-	}
+func parseNilValueType(key string, autoDescription helm.ValueDescription, column int, lineNumber int) valueRow {
 	// Grab whatever's in between the parentheses of the description and treat it as the type
-	t := nilValueTypeRegex.FindString(description.Description)
+	t := nilValueTypeRegex.FindString(autoDescription.Description)
 
 	if len(t) > 0 {
 		t = t[1 : len(t)-1]
-		description.Description = description.Description[len(t)+3:]
+		autoDescription.Description = autoDescription.Description[len(t)+3:]
 	} else {
 		t = stringType
 	}
 
 	// only set description.Default if no fallback (autoDescription.Default) is available
-	if description.Default == "" && autoDescription.Default == "" {
-		description.Default = "`nil`"
+	if autoDescription.Default == ""  {
+		autoDescription.Default = "`nil`"
 	}
 
 	return valueRow{
 		Key:             key,
 		Type:            t,
-		AutoDefault:     autoDescription.Default,
-		Default:         description.Default,
-		AutoDescription: autoDescription.Description,
-		Description:     description.Description,
+		Default:         autoDescription.Default,
+		Description:     autoDescription.Description,
 		Column:          column,
 		LineNumber:      lineNumber,
 	}
@@ -140,18 +135,16 @@ func getDescriptionFromNode(node *yaml.Node) helm.ValueDescription {
 func createValueRow(
 	key string,
 	value interface{},
-	description helm.ValueDescription,
 	autoDescription helm.ValueDescription,
 	column int,
 	lineNumber int,
 ) (valueRow, error) {
 	if value == nil {
-		return parseNilValueType(key, description, autoDescription, column, lineNumber), nil
+		return parseNilValueType(key, autoDescription, column, lineNumber), nil
 	}
 
-	autoDefaultValue := autoDescription.Default
-	defaultValue := description.Default
-	if defaultValue == "" && autoDefaultValue == "" {
+	defaultValue := autoDescription.Default
+	if defaultValue == "" {
 		jsonEncodedValue, err := jsonMarshalNoEscape(key, value)
 		if err != nil {
 			return valueRow{}, fmt.Errorf("failed to marshal default value for %s to json: %s", key, err)
@@ -161,14 +154,12 @@ func createValueRow(
 	}
 
 	return valueRow{
-		Key:             key,
-		Type:            getTypeName(value),
-		AutoDefault:     autoDescription.Default,
-		Default:         defaultValue,
-		AutoDescription: autoDescription.Description,
-		Description:     description.Description,
-		Column:          column,
-		LineNumber:      lineNumber,
+		Key:         key,
+		Type:        getTypeName(value),
+		Default:     defaultValue,
+		Description: autoDescription.Description,
+		Column:      column,
+		LineNumber:  lineNumber,
 	}, nil
 }
 
@@ -176,20 +167,18 @@ func createValueRowsFromList(
 	prefix string,
 	key *yaml.Node,
 	values *yaml.Node,
-	keysToDescriptions map[string]helm.ValueDescription,
 	documentLeafNodes bool,
 ) ([]valueRow, error) {
-	description, hasDescription := keysToDescriptions[prefix]
 	autoDescription := getDescriptionFromNode(key)
 
 	// If we encounter an empty list, it should be documented if no parent object or list had a description or if this
 	// list has a description
 	if len(values.Content) == 0 {
-		if !(documentLeafNodes || hasDescription || autoDescription.Description != "") {
+		if !(documentLeafNodes  || autoDescription.Description != "") {
 			return []valueRow{}, nil
 		}
 
-		emptyListRow, err := createValueRow(prefix, make([]interface{}, 0), description, autoDescription, key.Column, key.Line)
+		emptyListRow, err := createValueRow(prefix, make([]interface{}, 0), autoDescription, key.Column, key.Line)
 		if err != nil {
 			return nil, err
 		}
@@ -201,9 +190,9 @@ func createValueRowsFromList(
 
 	// We have a nonempty list with a description, document it, and mark that leaf nodes underneath it should not be
 	// documented without descriptions
-	if hasDescription || autoDescription.Description != "" {
+	if autoDescription.Description != "" {
 		jsonableObject := convertHelmValuesToJsonable(values)
-		listRow, err := createValueRow(prefix, jsonableObject, description, autoDescription, key.Column, key.Line)
+		listRow, err := createValueRow(prefix, jsonableObject, autoDescription, key.Column, key.Line)
 
 		if err != nil {
 			return nil, err
@@ -216,7 +205,7 @@ func createValueRowsFromList(
 	// Generate documentation rows for all list items and their potential sub-fields
 	for i, v := range values.Content {
 		nextPrefix := formatNextListKeyPrefix(prefix, i)
-		valueRowsForListField, err := createValueRowsFromField(nextPrefix, v, v, keysToDescriptions, documentLeafNodes)
+		valueRowsForListField, err := createValueRowsFromField(nextPrefix, v, v, documentLeafNodes)
 
 		if err != nil {
 			return nil, err
@@ -232,10 +221,8 @@ func createValueRowsFromObject(
 	nextPrefix string,
 	key *yaml.Node,
 	values *yaml.Node,
-	keysToDescriptions map[string]helm.ValueDescription,
 	documentLeafNodes bool,
 ) ([]valueRow, error) {
-	description, hasDescription := keysToDescriptions[nextPrefix]
 	autoDescription := getDescriptionFromNode(key)
 
 	if len(values.Content) == 0 {
@@ -246,11 +233,11 @@ func createValueRowsFromObject(
 
 		// Otherwise, we have a leaf empty object node that should be documented if no object up the recursion chain had
 		// a description or if this object has a description
-		if !(documentLeafNodes || hasDescription || autoDescription.Description != "") {
+		if !(documentLeafNodes || autoDescription.Description != "") {
 			return []valueRow{}, nil
 		}
 
-		documentedRow, err := createValueRow(nextPrefix, make(map[string]interface{}), description, autoDescription, key.Column, key.Line)
+		documentedRow, err := createValueRow(nextPrefix, make(map[string]interface{}), autoDescription, key.Column, key.Line)
 		return []valueRow{documentedRow}, err
 	}
 
@@ -258,9 +245,9 @@ func createValueRowsFromObject(
 
 	// We have a nonempty object with a description, document it, and mark that leaf nodes underneath it should not be
 	// documented without descriptions
-	if hasDescription || autoDescription.Description != "" {
+	if autoDescription.Description != "" {
 		jsonableObject := convertHelmValuesToJsonable(values)
-		objectRow, err := createValueRow(nextPrefix, jsonableObject, description, autoDescription, key.Column, key.Line)
+		objectRow, err := createValueRow(nextPrefix, jsonableObject, autoDescription, key.Column, key.Line)
 
 		if err != nil {
 			return nil, err
@@ -274,7 +261,7 @@ func createValueRowsFromObject(
 		k := values.Content[i]
 		v := values.Content[i+1]
 		nextPrefix := formatNextObjectKeyPrefix(nextPrefix, k.Value)
-		valueRowsForObjectField, err := createValueRowsFromField(nextPrefix, k, v, keysToDescriptions, documentLeafNodes)
+		valueRowsForObjectField, err := createValueRowsFromField(nextPrefix, k, v, documentLeafNodes)
 
 		if err != nil {
 			return nil, err
@@ -290,31 +277,29 @@ func createValueRowsFromField(
 	prefix string,
 	key *yaml.Node,
 	value *yaml.Node,
-	keysToDescriptions map[string]helm.ValueDescription,
 	documentLeafNodes bool,
 ) ([]valueRow, error) {
 	switch value.Kind {
 	case yaml.MappingNode:
-		return createValueRowsFromObject(prefix, key, value, keysToDescriptions, documentLeafNodes)
+		return createValueRowsFromObject(prefix, key, value, documentLeafNodes)
 	case yaml.SequenceNode:
-		return createValueRowsFromList(prefix, key, value, keysToDescriptions, documentLeafNodes)
+		return createValueRowsFromList(prefix, key, value, documentLeafNodes)
 	case yaml.AliasNode:
-		return createValueRowsFromField(prefix, key, value.Alias, keysToDescriptions, documentLeafNodes)
+		return createValueRowsFromField(prefix, key, value.Alias, documentLeafNodes)
 	case yaml.ScalarNode:
 		autoDescription := getDescriptionFromNode(key)
-		description, hasDescription := keysToDescriptions[prefix]
-		if !(documentLeafNodes || hasDescription || autoDescription.Description != "") {
+		if (!documentLeafNodes && autoDescription.Description == "") {
 			return []valueRow{}, nil
 		}
 
 		switch value.Tag {
 		case nullTag:
-			leafValueRow, err := createValueRow(prefix, nil, description, autoDescription, key.Column, key.Line)
+			leafValueRow, err := createValueRow(prefix, nil, autoDescription, key.Column, key.Line)
 			return []valueRow{leafValueRow}, err
 		case strTag:
 			fallthrough
 		case timestampTag:
-			leafValueRow, err := createValueRow(prefix, value.Value, description, autoDescription, key.Column, key.Line)
+			leafValueRow, err := createValueRow(prefix, value.Value, autoDescription, key.Column, key.Line)
 			return []valueRow{leafValueRow}, err
 		case intTag:
 			var decodedValue int
@@ -323,7 +308,7 @@ func createValueRowsFromField(
 				return []valueRow{}, err
 			}
 
-			leafValueRow, err := createValueRow(prefix, decodedValue, description, autoDescription, key.Column, key.Line)
+			leafValueRow, err := createValueRow(prefix, decodedValue, autoDescription, key.Column, key.Line)
 			return []valueRow{leafValueRow}, err
 		case floatTag:
 			var decodedValue float64
@@ -331,7 +316,7 @@ func createValueRowsFromField(
 			if err != nil {
 				return []valueRow{}, err
 			}
-			leafValueRow, err := createValueRow(prefix, decodedValue, description, autoDescription, key.Column, key.Line)
+			leafValueRow, err := createValueRow(prefix, decodedValue, autoDescription, key.Column, key.Line)
 			return []valueRow{leafValueRow}, err
 
 		case boolTag:
@@ -340,7 +325,7 @@ func createValueRowsFromField(
 			if err != nil {
 				return []valueRow{}, err
 			}
-			leafValueRow, err := createValueRow(prefix, decodedValue, description, autoDescription, key.Column, key.Line)
+			leafValueRow, err := createValueRow(prefix, decodedValue, autoDescription, key.Column, key.Line)
 			return []valueRow{leafValueRow}, err
 		}
 	}

@@ -5,9 +5,9 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/theEndBeta/yaml-docs/pkg/helm"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v3"
 )
 
 func getOutputFile(dryRun bool) (*os.File, error) {
@@ -25,7 +25,7 @@ func getOutputFile(dryRun bool) (*os.File, error) {
 	return f, err
 }
 
-func PrintDocumentation(documentationInfo helm.DocumentationInfo, templateFiles []string, dryRun bool, helmDocsVersion string) {
+func PrintDocumentation(valuesData *yaml.Node, templateFiles []string, dryRun bool, helmDocsVersion string) {
 	log.Infof("Generating README Documentation")
 
 	documentationTemplate, err := newDocumentationTemplate(templateFiles)
@@ -35,7 +35,7 @@ func PrintDocumentation(documentationInfo helm.DocumentationInfo, templateFiles 
 		return
 	}
 
-	chartTemplateDataObject, err := getChartTemplateData(documentationInfo, helmDocsVersion)
+	chartTemplateDataObject, err := getChartTemplateData(valuesData, helmDocsVersion)
 	if err != nil {
 		log.Warnf("Error generating template data: %s", err)
 		return

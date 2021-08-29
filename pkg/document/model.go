@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/theEndBeta/yaml-docs/pkg/helm"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 )
@@ -23,17 +22,15 @@ type valueRow struct {
 }
 
 type chartTemplateData struct {
-	helm.DocumentationInfo
 	HelmDocsVersion string
 	Values          []valueRow
 }
 
-func getSortedValuesTableRows(documentRoot *yaml.Node, chartValuesDescriptions map[string]helm.ValueDescription) ([]valueRow, error) {
+func getSortedValuesTableRows(documentRoot *yaml.Node) ([]valueRow, error) {
 	valuesTableRows, err := createValueRowsFromField(
 		"",
 		nil,
 		documentRoot,
-		chartValuesDescriptions,
 		true,
 	)
 
@@ -50,12 +47,13 @@ func getSortedValuesTableRows(documentRoot *yaml.Node, chartValuesDescriptions m
 
 			return valuesTableRows[i].LineNumber < valuesTableRows[i].LineNumber
 		})
-	} else if sortOrder == AlphaNumSortOrder {
-		sort.Slice(valuesTableRows, func(i, j int) bool {
-			return valuesTableRows[i].Key < valuesTableRows[j].Key
-		})
-	} else {
-		log.Warnf("Invalid sort order provided %s, defaulting to %s", sortOrder, AlphaNumSortOrder)
+	} else { // Default to AlphaNumSortOrder
+		if sortOrder == "" {
+			log.Debugf("No sort order provided, defaulting to %s", AlphaNumSortOrder)
+		} else if sortOrder != AlphaNumSortOrder {
+			log.Infof("Invalid sort order `%s`, defaulting to %s", sortOrder, AlphaNumSortOrder)
+		}
+
 		sort.Slice(valuesTableRows, func(i, j int) bool {
 			return valuesTableRows[i].Key < valuesTableRows[j].Key
 		})
@@ -65,31 +63,29 @@ func getSortedValuesTableRows(documentRoot *yaml.Node, chartValuesDescriptions m
 }
 
 
-func getChartTemplateData(chartDocumentationInfo helm.DocumentationInfo, helmDocsVersion string) (chartTemplateData, error) {
+func getChartTemplateData(valuesData *yaml.Node, helmDocsVersion string) (chartTemplateData, error) {
 	// handle empty values file case
-	if chartDocumentationInfo.Values.Kind == 0 {
+	if valuesData.Kind == 0 {
 		return chartTemplateData{
-			DocumentationInfo: chartDocumentationInfo,
 			HelmDocsVersion:        helmDocsVersion,
 			Values:                 make([]valueRow, 0),
 		}, nil
 	}
 
-	if chartDocumentationInfo.Values.Kind != yaml.DocumentNode {
-		return chartTemplateData{}, fmt.Errorf("invalid node kind supplied: %d", chartDocumentationInfo.Values.Kind)
+	if valuesData.Kind != yaml.DocumentNode {
+		return chartTemplateData{}, fmt.Errorf("invalid node kind supplied: %d", valuesData.Kind)
 	}
-	if chartDocumentationInfo.Values.Content[0].Kind != yaml.MappingNode {
-		return chartTemplateData{}, fmt.Errorf("values file must resolve to a map, not %s", strconv.Itoa(int(chartDocumentationInfo.Values.Kind)))
+	if valuesData.Content[0].Kind != yaml.MappingNode {
+		return chartTemplateData{}, fmt.Errorf("values file must resolve to a map, not %s", strconv.Itoa(int(valuesData.Kind)))
 	}
 
-	valuesTableRows, err := getSortedValuesTableRows(chartDocumentationInfo.Values.Content[0], chartDocumentationInfo.ValuesDescriptions)
+	valuesTableRows, err := getSortedValuesTableRows(valuesData.Content[0])
 
 	if err != nil {
 		return chartTemplateData{}, err
 	}
 
 	return chartTemplateData{
-		DocumentationInfo: chartDocumentationInfo,
 		HelmDocsVersion:        helmDocsVersion,
 		Values:                 valuesTableRows,
 	}, nil

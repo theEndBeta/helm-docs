@@ -13,12 +13,12 @@ import (
 	"github.com/theEndBeta/yaml-docs/pkg/helm"
 )
 
-func retrieveInfoAndPrintDocumentation(valuesFilePath string, templateFiles []string, waitGroup *sync.WaitGroup, dryRun bool) {
+func retrieveInfoAndPrintDocumentation(valuesFiles []string, templateFiles []string, waitGroup *sync.WaitGroup, dryRun bool) {
 	defer waitGroup.Done()
-	valuesFileInfo, err := helm.ParseChartInformation(valuesFilePath)
+	valuesFileInfo, err := helm.ParseValues(valuesFiles)
 
 	if err != nil {
-		log.Warnf("Error parsing information for chart %s, skipping: %s", valuesFilePath, err)
+		log.Warnf("Error parsing information for chart %s, skipping: %s", valuesFiles, err)
 		return
 	}
 
@@ -43,15 +43,13 @@ func helmDocs(cmd *cobra.Command, _ []string) {
 	dryRun := viper.GetBool("dry-run")
 	waitGroup := sync.WaitGroup{}
 
-	for _, fname := range valuesFiles {
-		waitGroup.Add(1)
+	waitGroup.Add(1)
 
-		// On dry runs all output goes to stdout, and so as to not jumble things, generate serially
-		if dryRun {
-			retrieveInfoAndPrintDocumentation(fname, templateFiles, &waitGroup, dryRun)
-		} else {
-			go retrieveInfoAndPrintDocumentation(fname, templateFiles, &waitGroup, dryRun)
-		}
+	// On dry runs all output goes to stdout, and so as to not jumble things, generate serially
+	if dryRun {
+		retrieveInfoAndPrintDocumentation(valuesFiles, templateFiles, &waitGroup, dryRun)
+	} else {
+		go retrieveInfoAndPrintDocumentation(valuesFiles, templateFiles, &waitGroup, dryRun)
 	}
 
 	waitGroup.Wait()
