@@ -25,7 +25,7 @@ func getOutputFile(dryRun bool) (*os.File, error) {
 	return f, err
 }
 
-func PrintDocumentation(valuesData *yaml.Node, templateFiles []string, dryRun bool, helmDocsVersion string) {
+func PrintDocumentation(valuesData *yaml.Node, templateFiles []string, dryRun bool, yamlDocsVersion string) {
 	log.Infof("Generating README Documentation")
 
 	documentationTemplate, err := newDocumentationTemplate(templateFiles)
@@ -35,7 +35,7 @@ func PrintDocumentation(valuesData *yaml.Node, templateFiles []string, dryRun bo
 		return
 	}
 
-	chartTemplateDataObject, err := getChartTemplateData(valuesData, helmDocsVersion)
+	chartTemplateDataObject, err := getChartTemplateData(valuesData, yamlDocsVersion)
 	if err != nil {
 		log.Warnf("Error generating template data: %s", err)
 		return

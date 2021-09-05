@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var version string
+var version string = "0.5.0"
 
 func possibleLogLevels() []string {
 	levels := make([]string, 0)

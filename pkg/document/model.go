@@ -20,7 +20,7 @@ type valueRow struct {
 }
 
 type chartTemplateData struct {
-	HelmDocsVersion string
+	YamlDocsVersion string
 	Values          []valueRow
 }
 
@@ -61,11 +61,11 @@ func getSortedValuesTableRows(documentRoot *yaml.Node) ([]valueRow, error) {
 }
 
 
-func getChartTemplateData(valuesData *yaml.Node, helmDocsVersion string) (chartTemplateData, error) {
+func getChartTemplateData(valuesData *yaml.Node, yamlDocsVersion string) (chartTemplateData, error) {
 	// handle empty values file case
 	if valuesData.Kind == 0 {
 		return chartTemplateData{
-			HelmDocsVersion:        helmDocsVersion,
+			YamlDocsVersion:        yamlDocsVersion,
 			Values:                 make([]valueRow, 0),
 		}, nil
 	}
@@ -84,7 +84,7 @@ func getChartTemplateData(valuesData *yaml.Node, helmDocsVersion string) (chartT
 	}
 
 	return chartTemplateData{
-		HelmDocsVersion:        helmDocsVersion,
+		YamlDocsVersion:        yamlDocsVersion,
 		Values:                 valuesTableRows,
 	}, nil
 }

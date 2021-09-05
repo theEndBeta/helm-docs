@@ -1,7 +1,7 @@
 FROM alpine:3.11.5
 
-COPY helm-docs /usr/bin/
+COPY yaml-docs /usr/bin/
 
-WORKDIR /helm-docs
+WORKDIR /yaml-docs
 
-ENTRYPOINT ["helm-docs"]
+ENTRYPOINT ["yaml-docs"]

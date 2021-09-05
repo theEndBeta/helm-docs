@@ -26,7 +26,7 @@ func retrieveInfoAndPrintDocumentation(valuesFiles []string, templateFiles []str
 
 }
 
-func helmDocs(cmd *cobra.Command, _ []string) {
+func yamlDocs(cmd *cobra.Command, _ []string) {
 	initializeCli()
 
 	var valuesFiles []string
@@ -56,7 +56,7 @@ func helmDocs(cmd *cobra.Command, _ []string) {
 }
 
 func main() {
-	command, err := newYAMLDocsCommand(helmDocs)
+	command, err := newYAMLDocsCommand(yamlDocs)
 	if err != nil {
 		log.Errorf("Failed to create the CLI commander: %s", err)
 		os.Exit(1)
